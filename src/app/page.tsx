@@ -169,10 +169,10 @@ export default function Home() {
                   <SelectValue placeholder={currencySymbol} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="USD">USD - US Dollar ($)</SelectItem>
-                  <SelectItem value="EUR">EUR - Euro (€)</SelectItem>
-                  <SelectItem value="GBP">GBP - British Pound (£)</SelectItem>
-                  <SelectItem value="INR">INR - Indian Rupee (₹)</SelectItem>
+                  <SelectItem value="USD">USD - $</SelectItem>
+                  <SelectItem value="EUR">EUR - €</SelectItem>
+                  <SelectItem value="GBP">GBP - £</SelectItem>
+                  <SelectItem value="INR">INR - ₹</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -319,5 +319,6 @@ export default function Home() {
     </div>
   );
 }
+
 
 
