@@ -38,6 +38,8 @@ export default function Home() {
   const [expenseType, setExpenseType] = useState<string>("Food/Meal"); // Default expense type
   const [expenseTypes, setExpenseTypes] = useState<string[]>(["Food/Meal", "Shopping", "Travel"]); // Initial expense types
   const [expenses, setExpenses] = useState<any[]>([]);
+    const [isEditingExpenseType, setIsEditingExpenseType] = useState(false);
+    const [newExpenseType, setNewExpenseType] = useState("");
 
   // Error states
   const [billAmountError, setBillAmountError] = useState<string | null>(null);
@@ -157,13 +159,18 @@ export default function Home() {
 
   const currencySymbol = currencySymbols[currency] || "$";
 
-    const handleAddExpenseType = () => {
-        // Prompt the user to enter a new expense type
-        const newExpenseType = prompt("Enter a new expense type:");
-        if (newExpenseType && newExpenseType.trim() !== "") {
-            setExpenseTypes([...expenseTypes, newExpenseType.trim()]);
-        }
+      const handleAddExpenseType = () => {
+        setIsEditingExpenseType(true);
     };
+
+    const handleSaveExpenseType = () => {
+        if (newExpenseType && newExpenseType.trim() !== "" && !expenseTypes.includes(newExpenseType.trim())) {
+            setExpenseTypes(prevTypes => [...new Set([...prevTypes, newExpenseType.trim()])]);
+        }
+        setIsEditingExpenseType(false);
+        setNewExpenseType("");
+    };
+
 
     const totalOwedAmounts = () => {
       let totalOwed: { [name: string]: number } = {};
@@ -213,6 +220,20 @@ export default function Home() {
                 <span className="sr-only">Edit Expense Types</span>
               </Button>
             </div>
+                        {isEditingExpenseType && (
+                            <div className="flex flex-col space-y-2 mt-2">
+                                <Input
+                                    type="text"
+                                    placeholder="Enter new expense type"
+                                    className="rounded-md text-gray-700 shadow-sm"
+                                    value={newExpenseType}
+                                    onChange={(e) => setNewExpenseType(e.target.value)}
+                                />
+                                <Button onClick={handleSaveExpenseType} className="bg-teal-500 text-white hover:bg-teal-600 rounded-md shadow-md">
+                                    Save
+                                </Button>
+                            </div>
+                        )}
           </section>
 
           {/* Bill Amount Section */}
@@ -430,4 +451,5 @@ export default function Home() {
     </div>
   );
 }
+
 
