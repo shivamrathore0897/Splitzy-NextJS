@@ -32,7 +32,7 @@ export default function Home() {
   const [participantName, setParticipantName] = useState("");
   const [owedAmounts, setOwedAmounts] = useState<{ [name: string]: number }>({});
   const [payer, setPayer] = useState<string>("");
-	const [currency, setCurrency] = useState<string>("USD");
+  const [currency, setCurrency] = useState<string>("USD");
   const [isCalculating, setIsCalculating] = useState(false);
 
   // Error states
@@ -40,7 +40,7 @@ export default function Home() {
   const [participantNameError, setParticipantNameError] = useState<string | null>(null);
   const [participantsError, setParticipantsError] = useState<string | null>(null);
   const [payerError, setPayerError] = useState<string | null>(null);
-	const [currencyError, setCurrencyError] = useState<string | null>(null);
+  const [currencyError, setCurrencyError] = useState<string | null>(null);
 
   // Validation function to check if the form is valid
   const isFormValid = () => {
@@ -54,18 +54,18 @@ export default function Home() {
       setParticipantsError(null);
     }
     if (!payer) {
-        setPayerError("Please select payer.")
-        isValid = false;
+      setPayerError("Please select payer.")
+      isValid = false;
     } else {
-        setPayerError(null);
+      setPayerError(null);
     }
 
-		if (!currency) {
-			setCurrencyError("Please select currency.")
-			isValid = false;
-		} else {
-			setCurrencyError(null);
-		}
+    if (!currency) {
+      setCurrencyError("Please select currency.")
+      isValid = false;
+    } else {
+      setCurrencyError(null);
+    }
 
     return isValid;
   };
@@ -90,7 +90,7 @@ export default function Home() {
     setBillAmountError(null);
     setParticipantsError(null);
     setPayerError(null);
-		setCurrencyError(null);
+    setCurrencyError(null);
 
     let isValid = true;
 
@@ -102,9 +102,9 @@ export default function Home() {
 
     // Validate form fields
     if (!isFormValid()) {
-        isValid = false;
+      isValid = false;
     }
-    
+
     // If form is invalid, return
     if (!isValid) {
       return;
@@ -136,14 +136,14 @@ export default function Home() {
   // Check if calculation is disabled
   const isCalculateDisabled = !billAmount || !payer || !currency;
 
-	const currencySymbols = {
-		USD: "$",
-		EUR: "€",
-		GBP: "£",
-		INR: "₹",
-	};
+  const currencySymbols: any = {
+    USD: "$",
+    EUR: "€",
+    GBP: "£",
+    INR: "₹",
+  };
 
-	const currencySymbol = currencySymbols[currency] || "$";
+  const currencySymbol = currencySymbols[currency] || "$";
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-4 bg-gradient-to-br from-green-100 to-teal-50 font-sans">
@@ -164,10 +164,12 @@ export default function Home() {
 
               {/* Currency Selection Section */}
 
-              <Select onValueChange={setCurrency} defaultValue={currency} >
+              <Select onValueChange={setCurrency} defaultValue={currency}>
                 <SelectTrigger className="w-[80px] rounded-r-none">
-                  <SelectValue placeholder={currencySymbol} />
+                  {/* Manually render selected currency symbol */}
+                  <span className="pl-2">{currencySymbols[currency]}</span>
                 </SelectTrigger>
+
                 <SelectContent>
                   <SelectItem value="USD">USD - $</SelectItem>
                   <SelectItem value="EUR">EUR - €</SelectItem>
@@ -313,7 +315,7 @@ export default function Home() {
 
       <footer className="mt-8 text-center text-gray-500">
         <p>
-        Made with ❤️ just for you
+          Made with ❤️ just for you
         </p>
       </footer>
     </div>
