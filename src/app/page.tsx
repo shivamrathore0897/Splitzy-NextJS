@@ -1,11 +1,24 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { User, Wallet, History } from 'lucide-react';
+import { User, Wallet, History, CheckCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+
+const ParticipantItem = ({ index, participant, isPayer }) => (
+  <li key={index} className="flex items-center space-x-2">
+    {isPayer ? (
+      <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
+    ) : (
+      <User className="mr-1 h-4 w-4" />
+    )}
+    <span>{index + 1}. {participant}</span>
+  </li>
+);
+
 
 export default function Home() {
   const [billAmount, setBillAmount] = useState<number | null>(null);
@@ -13,37 +26,86 @@ export default function Home() {
   const [participantName, setParticipantName] = useState("");
   const [owedAmounts, setOwedAmounts] = useState<{ [name: string]: number }>({});
   const [payer, setPayer] = useState<string>("");
+  const [isCalculating, setIsCalculating] = useState(false);
+
+  // Error states
+  const [billAmountError, setBillAmountError] = useState<string | null>(null);
+  const [participantNameError, setParticipantNameError] = useState<string | null>(null);
+  const [participantsError, setParticipantsError] = useState<string | null>(null);
+  const [payerError, setPayerError] = useState<string | null>(null);
 
   const isFormValid = () => {
-    return billAmount !== null && billAmount > 0 && participants.length > 0;
+    let isValid = true;
+
+    // Participants Validation
+    if (participants.length === 0) {
+      setParticipantsError("Please add at least one participant.");
+      isValid = false;
+    } else {
+      setParticipantsError(null);
+    }
+    if (!payer) {
+        setPayerError("Please select payer.")
+        isValid = false;
+    } else {
+        setPayerError(null);
+    }
+
+    return isValid;
   };
 
+
   const handleAddParticipant = () => {
-    if (participantName.trim() !== "") {
-      setParticipants([...participants, participantName.trim()]);
-      setParticipantName("");
+    if (participantName.trim() === "") {
+      setParticipantNameError("Participant name cannot be empty.");
+      return;
+    } else {
+      setParticipantNameError(null);
     }
+
+    setParticipants([...participants, participantName.trim()]);
+    setParticipantName("");
   };
 
   const handleCalculateSplit = () => {
+    // Reset error states
+    setBillAmountError(null);
+    setParticipantsError(null);
+    setPayerError(null);
+
+    let isValid = true;
+
+    if (billAmount === null || billAmount <= 0) {
+      setBillAmountError("Bill amount must be greater than 0.");
+      isValid = false;
+    }
+
     if (!isFormValid()) {
-      alert("Please enter a valid bill amount and add at least one participant.");
+        isValid = false;
+    }
+    
+    if (!isValid) {
       return;
     }
 
-    const splitAmount = billAmount! / participants.length;
-    const newOwedAmounts: { [name: string]: number } = {};
+    setIsCalculating(true);
+    try {
+      const splitAmount = billAmount! / participants.length;
+      const newOwedAmounts: { [name: string]: number } = {};
 
-    participants.forEach((participant) => {
-      if (payer === participant) {
-        newOwedAmounts[participant] = 0; // Payer already paid
-      }
-      else {
-        newOwedAmounts[participant] = splitAmount;
-      }
-    });
+      participants.forEach((participant) => {
+        if (payer === participant) {
+          newOwedAmounts[participant] = 0; // Payer already paid
+        }
+        else {
+          newOwedAmounts[participant] = splitAmount;
+        }
+      });
 
-    setOwedAmounts(newOwedAmounts);
+      setOwedAmounts(newOwedAmounts);
+    } finally {
+      setIsCalculating(false);
+    }
   };
 
   return (
@@ -67,6 +129,12 @@ export default function Home() {
                 setBillAmount(isNaN(value) ? null : value);
               }}
             />
+            {billAmountError && (
+              <Alert variant="destructive">
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{billAmountError}</AlertDescription>
+              </Alert>
+            )}
           </div>
 
           {/* Participants Input */}
@@ -82,18 +150,32 @@ export default function Home() {
               />
               <Button onClick={handleAddParticipant}><User className="mr-2 h-4 w-4"/>Add</Button>
             </div>
+            {participantNameError && (
+              <Alert variant="destructive">
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{participantNameError}</AlertDescription>
+              </Alert>
+            )}
             {participants.length > 0 && (
               <div className="mt-2">
                 <Label>List of Participants:</Label>
                 <ul>
                   {participants.map((participant, index) => (
-                    <li key={index} className="flex items-center space-x-2">
-                      <User className="mr-1 h-4 w-4"/>
-                      <span>{index + 1}. {participant}</span>
-                    </li>
+                    <ParticipantItem
+                      key={index}
+                      index={index}
+                      participant={participant}
+                      isPayer={payer === participant}
+                    />
                   ))}
                 </ul>
               </div>
+            )}
+            {participantsError && (
+              <Alert variant="destructive">
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{participantsError}</AlertDescription>
+              </Alert>
             )}
           </div>
 
@@ -112,10 +194,16 @@ export default function Home() {
                 </option>
               ))}
             </select>
+            {payerError && (
+              <Alert variant="destructive">
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{payerError}</AlertDescription>
+              </Alert>
+            )}
           </div>
 
           {/* Calculate Split Button */}
-          <Button className="w-full" onClick={handleCalculateSplit} disabled={!isFormValid()}>
+          <Button className="w-full" onClick={handleCalculateSplit} disabled={isCalculating}>
             <Wallet className="mr-2 h-4 w-4"/>Calculate Split
           </Button>
 
@@ -128,7 +216,7 @@ export default function Home() {
                     <li key={name} className="flex items-center space-x-2">
                       {payer === name ? (
                         <>
-                          <Wallet className="mr-1 h-4 w-4 text-green-500" />
+                          <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
                           <span>{name} (Payer):</span>
                         </>
                       ) : (
