@@ -7,20 +7,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { User, Wallet, History, CheckCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { cn } from "@/lib/utils";
 
+// Component for displaying a participant item in the list
 const ParticipantItem = ({ index, participant, isPayer }) => (
-  <li key={index} className="flex items-center space-x-2">
+  <li key={index} className="flex items-center space-x-2 py-1">
     {isPayer ? (
       <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
     ) : (
-      <User className="mr-1 h-4 w-4" />
+      <User className="mr-1 h-4 w-4 text-gray-500" />
     )}
-    <span>{index + 1}. {participant}</span>
+    <span className="text-gray-700">{index + 1}. {participant}</span>
   </li>
 );
 
 
 export default function Home() {
+  // State variables
   const [billAmount, setBillAmount] = useState<number | null>(null);
   const [participants, setParticipants] = useState<string[]>([]);
   const [participantName, setParticipantName] = useState("");
@@ -34,6 +37,7 @@ export default function Home() {
   const [participantsError, setParticipantsError] = useState<string | null>(null);
   const [payerError, setPayerError] = useState<string | null>(null);
 
+  // Validation function to check if the form is valid
   const isFormValid = () => {
     let isValid = true;
 
@@ -55,6 +59,7 @@ export default function Home() {
   };
 
 
+  // Handler for adding a new participant to the list
   const handleAddParticipant = () => {
     if (participantName.trim() === "") {
       setParticipantNameError("Participant name cannot be empty.");
@@ -67,6 +72,7 @@ export default function Home() {
     setParticipantName("");
   };
 
+  // Handler for calculating the split amount
   const handleCalculateSplit = () => {
     // Reset error states
     setBillAmountError(null);
@@ -75,24 +81,29 @@ export default function Home() {
 
     let isValid = true;
 
+    // Validate bill amount
     if (billAmount === null || billAmount <= 0) {
       setBillAmountError("Bill amount must be greater than 0.");
       isValid = false;
     }
 
+    // Validate form fields
     if (!isFormValid()) {
         isValid = false;
     }
     
+    // If form is invalid, return
     if (!isValid) {
       return;
     }
 
     setIsCalculating(true);
     try {
+      // Calculate split amount
       const splitAmount = billAmount! / participants.length;
       const newOwedAmounts: { [name: string]: number } = {};
 
+      // Calculate owed amounts for each participant
       participants.forEach((participant) => {
         if (payer === participant) {
           newOwedAmounts[participant] = 0; // Payer already paid
@@ -102,27 +113,37 @@ export default function Home() {
         }
       });
 
+      // Update owed amounts state
       setOwedAmounts(newOwedAmounts);
     } finally {
       setIsCalculating(false);
     }
   };
 
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-2 bg-secondary">
-      <Card className="w-full max-w-md space-y-4 p-4 rounded-lg shadow-md">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">Splitzy</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+  // Check if calculation is disabled
+  const isCalculateDisabled = !billAmount || !payer;
 
-          {/* Bill Amount Input */}
-          <div className="space-y-2">
-            <Label htmlFor="billAmount">Bill Amount</Label>
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen py-4 bg-gradient-to-br from-green-100 to-teal-50 font-sans">
+      <Card className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200">
+        <CardHeader>
+          <CardTitle className="text-3xl font-semibold text-center text-gray-800">
+            Splitzy
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+
+          {/* Bill Amount Section */}
+          <section className="space-y-4">
+            <Label htmlFor="billAmount" className="text-gray-700 font-medium">
+              Bill Amount
+            </Label>
             <Input
               id="billAmount"
               type="number"
               placeholder="Enter bill amount"
+              className="rounded-md text-gray-700 shadow-sm focus:ring-teal-500 focus:border-teal-500"
               value={billAmount === null ? "" : billAmount.toString()}
               onChange={(e) => {
                 const value = parseFloat(e.target.value);
@@ -135,20 +156,26 @@ export default function Home() {
                 <AlertDescription>{billAmountError}</AlertDescription>
               </Alert>
             )}
-          </div>
+          </section>
 
-          {/* Participants Input */}
-          <div className="space-y-2">
-            <Label htmlFor="participantName">Participants</Label>
+          {/* Participants Section */}
+          <section className="space-y-4">
+            <Label htmlFor="participantName" className="text-gray-700 font-medium">
+              Participants
+            </Label>
             <div className="flex space-x-2">
               <Input
                 id="participantName"
                 type="text"
                 placeholder="Enter participant name"
+                className="rounded-md text-gray-700 shadow-sm focus:ring-teal-500 focus:border-teal-500"
                 value={participantName}
                 onChange={(e) => setParticipantName(e.target.value)}
               />
-              <Button onClick={handleAddParticipant}><User className="mr-2 h-4 w-4"/>Add</Button>
+              <Button onClick={handleAddParticipant} className="bg-teal-500 text-white hover:bg-teal-600 rounded-md shadow-md">
+                <User className="mr-2 h-4 w-4" />
+                Add
+              </Button>
             </div>
             {participantNameError && (
               <Alert variant="destructive">
@@ -158,7 +185,7 @@ export default function Home() {
             )}
             {participants.length > 0 && (
               <div className="mt-2">
-                <Label>List of Participants:</Label>
+                <Label className="text-gray-700 font-medium">List of Participants:</Label>
                 <ul>
                   {participants.map((participant, index) => (
                     <ParticipantItem
@@ -177,13 +204,13 @@ export default function Home() {
                 <AlertDescription>{participantsError}</AlertDescription>
               </Alert>
             )}
-          </div>
+          </section>
 
-          {/* Payer Selection */}
-          <div className="space-y-2">
-            <Label>Who Paid?</Label>
+          {/* Payer Selection Section */}
+          <section className="space-y-4">
+            <Label className="text-gray-700 font-medium">Who Paid?</Label>
             <select
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:ring-teal-500 focus:border-teal-500"
               onChange={(e) => setPayer(e.target.value)}
               value={payer}
             >
@@ -200,41 +227,51 @@ export default function Home() {
                 <AlertDescription>{payerError}</AlertDescription>
               </Alert>
             )}
-          </div>
+          </section>
 
           {/* Calculate Split Button */}
-          <Button className="w-full" onClick={handleCalculateSplit} disabled={isCalculating}>
-            <Wallet className="mr-2 h-4 w-4"/>Calculate Split
+          <Button
+            className={cn(
+              "w-full bg-teal-500 text-white hover:bg-teal-600 rounded-md shadow-md transition-colors duration-300",
+              isCalculateDisabled && "opacity-50 cursor-not-allowed"
+            )}
+            onClick={handleCalculateSplit}
+            disabled={isCalculating || isCalculateDisabled}
+          >
+            <Wallet className="mr-2 h-4 w-4" />
+            Calculate Split
           </Button>
 
-          {/* Owed Amounts Display */}
+          {/* Owed Amounts Display Section */}
           {Object.keys(owedAmounts).length > 0 && (
-            <div className="mt-4">
-              <Label>Owed Amounts:</Label>
+            <section className="mt-6 space-y-4">
+              <Label className="text-gray-700 font-medium">Owed Amounts:</Label>
               <ul>
-                 {Object.entries(owedAmounts).map(([name, amount]) => (
-                    <li key={name} className="flex items-center space-x-2">
+                {Object.entries(owedAmounts).map(([name, amount]) => (
+                  <li key={name} className="flex items-center justify-between py-2 border-b border-gray-200">
+                    <div className="flex items-center space-x-2">
                       {payer === name ? (
                         <>
                           <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
-                          <span>{name} (Payer):</span>
+                          <span className="font-semibold text-gray-800">{name} (Payer)</span>
                         </>
                       ) : (
                         <>
-                          <User className="mr-1 h-4 w-4" />
-                          <span>{name}:</span>
+                          <User className="mr-1 h-4 w-4 text-gray-500" />
+                          <span className="text-gray-800">{name}</span>
                         </>
                       )}
-                      <span>{amount.toFixed(2)}</span>
-                    </li>
-                  ))}
+                    </div>
+                    <span className="text-gray-700">${amount.toFixed(2)}</span>
+                  </li>
+                ))}
               </ul>
-            </div>
+            </section>
           )}
         </CardContent>
       </Card>
 
-      <footer className="mt-8 text-center text-muted-foreground">
+      <footer className="mt-8 text-center text-gray-500">
         <p>
           Created by Firebase Studio
         </p>
