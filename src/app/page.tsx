@@ -357,7 +357,7 @@ export default function Home() {
             
             
              {expenses.map((expense, index) => (
-          <Card className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200 mt-4">
+          <Card key={index} className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200 mt-4">
         <CardHeader>
           <CardTitle className="text-3xl font-semibold text-center text-gray-800">
             Expense Details of : {expense.type}
@@ -430,3 +430,4 @@ export default function Home() {
     </div>
   );
 }
+
