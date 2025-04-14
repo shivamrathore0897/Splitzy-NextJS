@@ -37,6 +37,7 @@ export default function Home() {
   const [isCalculating, setIsCalculating] = useState(false);
   const [expenseType, setExpenseType] = useState<string>("Food/Meal"); // Default expense type
   const [expenseTypes, setExpenseTypes] = useState<string[]>(["Food/Meal", "Shopping", "Travel"]); // Initial expense types
+  const [expenses, setExpenses] = useState<any[]>([]);
 
   // Error states
   const [billAmountError, setBillAmountError] = useState<string | null>(null);
@@ -131,6 +132,14 @@ export default function Home() {
 
       // Update owed amounts state
       setOwedAmounts(newOwedAmounts);
+      setExpenses([...expenses, {
+        type: expenseType,
+        amount: billAmount,
+        participants: participants,
+        payer: payer,
+        currency: currency,
+        owedAmounts: newOwedAmounts,
+      }])
     } finally {
       setIsCalculating(false);
     }
@@ -156,6 +165,16 @@ export default function Home() {
         }
     };
 
+    const totalOwedAmounts = () => {
+      let totalOwed: { [name: string]: number } = {};
+      expenses.forEach(expense => {
+        Object.entries(expense.owedAmounts).forEach(([name, amount]) => {
+          totalOwed[name] = (totalOwed[name] || 0) + amount;
+        });
+      });
+      return totalOwed;
+    }
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-4 bg-gradient-to-br from-green-100 to-teal-50 font-sans">
       <Card className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200">
@@ -172,7 +191,7 @@ export default function Home() {
               Expense Details
             </Label>
             <div className="flex items-center space-x-2">
-              <Select onValueChange={setExpenseType} defaultValue={expenseType}>
+              <Select onValueChange={setExpenseType} value={expenseType}>
                 <SelectTrigger className="w-48 rounded-md">
                   <SelectValue placeholder={expenseType} />
                 </SelectTrigger>
@@ -205,7 +224,7 @@ export default function Home() {
 
               {/* Currency Selection Section */}
 
-              <Select onValueChange={setCurrency} defaultValue={currency}>
+              <Select onValueChange={setCurrency} value={currency}>
                 <SelectTrigger className="w-[80px] rounded-r-none">
                   {/* Manually render selected currency symbol */}
                   <span className="pl-2">{currencySymbols[currency]}</span>
@@ -333,16 +352,27 @@ export default function Home() {
             <Wallet className="mr-2 h-4 w-4" />
             Calculate Split
           </Button>
-
+          </CardContent>
+          </Card>
+            
+            
+             {expenses.map((expense, index) => (
+          <Card className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200 mt-4">
+        <CardHeader>
+          <CardTitle className="text-3xl font-semibold text-center text-gray-800">
+            Expense Details of : {expense.type}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
           {/* Owed Amounts Display Section */}
-          {Object.keys(owedAmounts).length > 0 && (
+          {Object.keys(expense.owedAmounts).length > 0 && (
             <section className="mt-6 space-y-4">
               <Label className="text-gray-700 font-medium">Owed Amounts:</Label>
               <ul>
-                {Object.entries(owedAmounts).map(([name, amount]) => (
+                {Object.entries(expense.owedAmounts).map(([name, amount]) => (
                   <li key={name} className="flex items-center justify-between py-2 border-b border-gray-200">
                     <div className="flex items-center space-x-2">
-                      {payer === name ? (
+                      {expense.payer === name ? (
                         <>
                           <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
                           <span className="font-semibold text-gray-800">{name} (Payer)</span>
@@ -354,14 +384,43 @@ export default function Home() {
                         </>
                       )}
                     </div>
+                    <span className="text-gray-700">{currencySymbols[expense.currency]}{amount.toFixed(2)}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+              </CardContent>
+                </Card>
+                  ))}
+                  
+          <Card className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200 mt-4">
+        <CardHeader>
+          <CardTitle className="text-3xl font-semibold text-center text-gray-800">
+            Total Owed Amounts:
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Owed Amounts Display Section */}
+          {Object.keys(totalOwedAmounts()).length > 0 && (
+            <section className="mt-6 space-y-4">
+              <Label className="text-gray-700 font-medium">Total Owed Amounts:</Label>
+              <ul>
+                {Object.entries(totalOwedAmounts()).map(([name, amount]) => (
+                  <li key={name} className="flex items-center justify-between py-2 border-b border-gray-200">
+                    <div className="flex items-center space-x-2">
+                          <User className="mr-1 h-4 w-4 text-gray-500" />
+                          <span className="text-gray-800">{name}</span>
+                    </div>
                     <span className="text-gray-700">{currencySymbol}{amount.toFixed(2)}</span>
                   </li>
                 ))}
               </ul>
             </section>
           )}
-        </CardContent>
-      </Card>
+              </CardContent>
+                </Card>
+      
 
       <footer className="mt-8 text-center text-gray-500">
         <p>
