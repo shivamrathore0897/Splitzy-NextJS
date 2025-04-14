@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from 'react';
@@ -15,6 +14,10 @@ export default function Home() {
   const [owedAmounts, setOwedAmounts] = useState<{ [name: string]: number }>({});
   const [payer, setPayer] = useState<string>("");
 
+  const isFormValid = () => {
+    return billAmount !== null && billAmount > 0 && participants.length > 0;
+  };
+
   const handleAddParticipant = () => {
     if (participantName.trim() !== "") {
       setParticipants([...participants, participantName.trim()]);
@@ -23,12 +26,12 @@ export default function Home() {
   };
 
   const handleCalculateSplit = () => {
-    if (billAmount === null || participants.length === 0) {
-      alert("Please enter the bill amount and add participants.");
+    if (!isFormValid()) {
+      alert("Please enter a valid bill amount and add at least one participant.");
       return;
     }
 
-    const splitAmount = billAmount / participants.length;
+    const splitAmount = billAmount! / participants.length;
     const newOwedAmounts: { [name: string]: number } = {};
 
     participants.forEach((participant) => {
@@ -59,7 +62,10 @@ export default function Home() {
               type="number"
               placeholder="Enter bill amount"
               value={billAmount === null ? "" : billAmount.toString()}
-              onChange={(e) => setBillAmount(parseFloat(e.target.value))}
+              onChange={(e) => {
+                const value = parseFloat(e.target.value);
+                setBillAmount(isNaN(value) ? null : value);
+              }}
             />
           </div>
 
@@ -81,7 +87,10 @@ export default function Home() {
                 <Label>List of Participants:</Label>
                 <ul>
                   {participants.map((participant, index) => (
-                    <li key={index}>{participant}</li>
+                    <li key={index} className="flex items-center space-x-2">
+                      <User className="mr-1 h-4 w-4"/>
+                      <span>{index + 1}. {participant}</span>
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -106,7 +115,7 @@ export default function Home() {
           </div>
 
           {/* Calculate Split Button */}
-          <Button className="w-full" onClick={handleCalculateSplit}>
+          <Button className="w-full" onClick={handleCalculateSplit} disabled={!isFormValid()}>
             <Wallet className="mr-2 h-4 w-4"/>Calculate Split
           </Button>
 
@@ -115,11 +124,22 @@ export default function Home() {
             <div className="mt-4">
               <Label>Owed Amounts:</Label>
               <ul>
-                {Object.entries(owedAmounts).map(([name, amount]) => (
-                  <li key={name}>
-                    {name}: {amount.toFixed(2)}
-                  </li>
-                ))}
+                 {Object.entries(owedAmounts).map(([name, amount]) => (
+                    <li key={name} className="flex items-center space-x-2">
+                      {payer === name ? (
+                        <>
+                          <Wallet className="mr-1 h-4 w-4 text-green-500" />
+                          <span>{name} (Payer):</span>
+                        </>
+                      ) : (
+                        <>
+                          <User className="mr-1 h-4 w-4" />
+                          <span>{name}:</span>
+                        </>
+                      )}
+                      <span>{amount.toFixed(2)}</span>
+                    </li>
+                  ))}
               </ul>
             </div>
           )}
