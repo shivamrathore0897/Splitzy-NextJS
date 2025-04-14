@@ -9,6 +9,7 @@ import { User, Wallet, History, CheckCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { cn } from "@/lib/utils";
 import { useIsFontLoaded } from "@/hooks/use-is-font-loaded";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Component for displaying a participant item in the list
 const ParticipantItem = ({ index, participant, isPayer }) => (
@@ -30,6 +31,7 @@ export default function Home() {
   const [participantName, setParticipantName] = useState("");
   const [owedAmounts, setOwedAmounts] = useState<{ [name: string]: number }>({});
   const [payer, setPayer] = useState<string>("");
+	const [currency, setCurrency] = useState<string>("USD");
   const [isCalculating, setIsCalculating] = useState(false);
 
   // Error states
@@ -37,6 +39,7 @@ export default function Home() {
   const [participantNameError, setParticipantNameError] = useState<string | null>(null);
   const [participantsError, setParticipantsError] = useState<string | null>(null);
   const [payerError, setPayerError] = useState<string | null>(null);
+	const [currencyError, setCurrencyError] = useState<string | null>(null);
 
   // Validation function to check if the form is valid
   const isFormValid = () => {
@@ -55,6 +58,13 @@ export default function Home() {
     } else {
         setPayerError(null);
     }
+
+		if (!currency) {
+			setCurrencyError("Please select currency.")
+			isValid = false;
+		} else {
+			setCurrencyError(null);
+		}
 
     return isValid;
   };
@@ -79,6 +89,7 @@ export default function Home() {
     setBillAmountError(null);
     setParticipantsError(null);
     setPayerError(null);
+		setCurrencyError(null);
 
     let isValid = true;
 
@@ -122,8 +133,16 @@ export default function Home() {
   };
 
   // Check if calculation is disabled
-  const isCalculateDisabled = !billAmount || !payer;
+  const isCalculateDisabled = !billAmount || !payer || !currency;
 
+	const currencySymbols = {
+		USD: "$",
+		EUR: "€",
+		GBP: "£",
+		INR: "₹",
+	};
+
+	const currencySymbol = currencySymbols[currency] || "$";
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-4 bg-gradient-to-br from-green-100 to-teal-50 font-sans">
@@ -230,6 +249,29 @@ export default function Home() {
             )}
           </section>
 
+					{/* Currency Selection Section */}
+					<section className="space-y-4">
+						<Label className="text-gray-700 font-medium">Select Currency</Label>
+						<Select onValueChange={setCurrency} defaultValue={currency}>
+							<SelectTrigger className="w-full">
+								<SelectValue placeholder="Select a currency" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="USD">USD - US Dollar</SelectItem>
+								<SelectItem value="EUR">EUR - Euro</SelectItem>
+								<SelectItem value="GBP">GBP - British Pound</SelectItem>
+								<SelectItem value="INR">INR - Indian Rupee</SelectItem>
+							</SelectContent>
+						</Select>
+						{currencyError && (
+							<Alert variant="destructive">
+								<AlertTitle>Error</AlertTitle>
+								<AlertDescription>{currencyError}</AlertDescription>
+							</Alert>
+						)}
+					</section>
+
+
           {/* Calculate Split Button */}
           <Button
             className={cn(
@@ -263,7 +305,7 @@ export default function Home() {
                         </>
                       )}
                     </div>
-                    <span className="text-gray-700">${amount.toFixed(2)}</span>
+                    <span className="text-gray-700">{currencySymbol}{amount.toFixed(2)}</span>
                   </li>
                 ))}
               </ul>
@@ -280,4 +322,5 @@ export default function Home() {
     </div>
   );
 }
+
 
