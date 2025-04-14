@@ -159,17 +159,33 @@ export default function Home() {
             <Label htmlFor="billAmount" className="text-gray-700 font-medium">
               Bill Amount
             </Label>
-            <Input
-              id="billAmount"
-              type="number"
-              placeholder="Enter bill amount"
-              className="rounded-md text-gray-700 shadow-sm focus:ring-teal-500 focus:border-teal-500"
-              value={billAmount === null ? "" : billAmount.toString()}
-              onChange={(e) => {
-                const value = parseFloat(e.target.value);
-                setBillAmount(isNaN(value) ? null : value);
-              }}
-            />
+            <div className="flex space-x-2">
+              <Input
+                id="billAmount"
+                type="number"
+                placeholder="Enter bill amount"
+                className="rounded-md text-gray-700 shadow-sm focus:ring-teal-500 focus:border-teal-500"
+                value={billAmount === null ? "" : billAmount.toString()}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value);
+                  setBillAmount(isNaN(value) ? null : value);
+                }}
+              />
+
+              {/* Currency Selection Section */}
+
+              <Select onValueChange={setCurrency} defaultValue={currency} >
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue placeholder="Currency" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="USD">USD - US Dollar</SelectItem>
+                  <SelectItem value="EUR">EUR - Euro</SelectItem>
+                  <SelectItem value="GBP">GBP - British Pound</SelectItem>
+                  <SelectItem value="INR">INR - Indian Rupee</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             {billAmountError && (
               <Alert variant="destructive">
                 <AlertTitle>Error</AlertTitle>
@@ -249,27 +265,6 @@ export default function Home() {
             )}
           </section>
 
-					{/* Currency Selection Section */}
-					<section className="space-y-4">
-						<Label className="text-gray-700 font-medium">Select Currency</Label>
-						<Select onValueChange={setCurrency} defaultValue={currency}>
-							<SelectTrigger className="w-full">
-								<SelectValue placeholder="Select a currency" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="USD">USD - US Dollar</SelectItem>
-								<SelectItem value="EUR">EUR - Euro</SelectItem>
-								<SelectItem value="GBP">GBP - British Pound</SelectItem>
-								<SelectItem value="INR">INR - Indian Rupee</SelectItem>
-							</SelectContent>
-						</Select>
-						{currencyError && (
-							<Alert variant="destructive">
-								<AlertTitle>Error</AlertTitle>
-								<AlertDescription>{currencyError}</AlertDescription>
-							</Alert>
-						)}
-					</section>
 
 
           {/* Calculate Split Button */}
