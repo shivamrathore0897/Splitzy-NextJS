@@ -59,22 +59,22 @@ export default function Home() {
     // Participants Validation
     if (participants.length === 0) {
       setParticipantsError("Please add at least one participant.");
-      isValid = false;
+      return;
     } else {
       setParticipantsError(null);
     }
     if (!payer) {
       setPayerError("Please select payer.")
-      isValid = false;
+      return;
     } else {
       setPayerError(null);
     }
 
     if (!currency) {
       setCurrencyError("Please select currency.")
-      isValid = false;
+      return;
     } else {
-      setCurrencyError(null);
+      setPayerError(null);
     }
 
     return isValid;
@@ -112,7 +112,7 @@ export default function Home() {
 
     // Validate form fields
     if (!isFormValid()) {
-      isValid = false;
+      return;
     }
 
     // If form is invalid, return
@@ -234,6 +234,43 @@ export default function Home() {
 
           return netOwed;
       };
+
+        const calculateSimplifiedOwedAmounts = () => {
+            const netOwed = calculateNetOwedAmounts();
+            const simplifiedOwed: { from: string; to: string; amount: number }[] = [];
+
+            // Sort participants based on their net owed amounts (highest owed first)
+            const sortedParticipants = Object.entries(netOwed)
+                .sort(([, amountA], [, amountB]) => amountB - amountA)
+                .map(([name]) => name);
+
+            let balances = { ...netOwed }; // Copy of netOwed to manipulate balances
+
+            for (let i = 0; i < sortedParticipants.length; i++) {
+                const debtor = sortedParticipants[i];
+                if (balances[debtor] <= 0) continue; // Skip if debtor has no debt
+
+                for (let j = i + 1; j < sortedParticipants.length; j++) {
+                    const creditor = sortedParticipants[j];
+                    if (balances[creditor] >= 0) continue; // Skip if creditor is not owed
+
+                    const transactionAmount = Math.min(balances[debtor], -balances[creditor]);
+
+                    simplifiedOwed.push({
+                        from: creditor,
+                        to: debtor,
+                        amount: transactionAmount,
+                    });
+
+                    balances[debtor] -= transactionAmount;
+                    balances[creditor] += transactionAmount;
+
+                    if (balances[debtor] === 0) break; // Debtor's debt is settled
+                }
+            }
+
+            return simplifiedOwed;
+        };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-4 bg-gradient-to-br from-green-100 to-teal-50 font-sans">
@@ -438,40 +475,19 @@ export default function Home() {
           </Button>
            </TabsContent>
                     <TabsContent value="owedBreakdown" className="space-y-6">
-                        <section className="mt-6 space-y-4">
-                            <Label className="text-gray-700 font-medium">Detailed Owed Amounts:</Label>
-                            <ul>
-                                {Object.entries(individualOwedAmounts).map(([payer, owees]) => (
-                                    <li key={payer} className="mb-4">
-                                        <Label className="font-semibold text-gray-800">
-                                            {payer} (Payer) is owed by:
-                                        </Label>
-                                        <ul>
-                                            {Object.entries(owees).map(([owee, amount]) => (
-                                                <li key={owee} className="flex items-center justify-between py-2 border-b border-gray-200">
-                                                    <div className="flex items-center space-x-2">
-                                                        <User className="mr-1 h-4 w-4 text-gray-500" />
-                                                        <span className="text-gray-800">{owee}</span>
-                                                    </div>
-                                                    <span className="text-gray-700">{currencySymbols[currency]}{amount.toFixed(2)}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </li>
-                                ))}
-                            </ul>
-                            </section>
-
                     <section className="mt-6 space-y-4">
-                        <Label className="text-gray-700 font-medium">Net Owed Amounts:</Label>
+                        <Label className="text-gray-700 font-medium">Simplified Owed Amounts:</Label>
                         <ul>
-                            {Object.entries(calculateNetOwedAmounts()).map(([name, amount]) => (
-                                <li key={name} className="flex items-center justify-between py-2 border-b border-gray-200">
+                            {calculateSimplifiedOwedAmounts().map((transaction, index) => (
+                                <li key={index} className="flex items-center justify-between py-2 border-b border-gray-200">
                                     <div className="flex items-center space-x-2">
                                         <User className="mr-1 h-4 w-4 text-gray-500" />
-                                        <span className="text-gray-800">{name}</span>
+                                        <span className="text-gray-800">{transaction.from}</span>
+                                        <span className="text-gray-500">owes</span>
+                                        <User className="mr-1 h-4 w-4 text-gray-500" />
+                                        <span className="text-gray-800">{transaction.to}</span>
                                     </div>
-                                    <span className="text-gray-700">{currencySymbol}{amount.toFixed(2)}</span>
+                                    <span className="text-gray-700">{currencySymbol}{transaction.amount.toFixed(2)}</span>
                                 </li>
                             ))}
                         </ul>
@@ -556,3 +572,4 @@ export default function Home() {
     </div>
   );
 }
+
