@@ -5,12 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { User, Wallet, History, CheckCircle, AlertTriangle } from 'lucide-react';
+import { User, Wallet, History, CheckCircle, AlertTriangle, Edit } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { cn } from "@/lib/utils";
-import { useIsFontLoaded } from "@/hooks/use-is-font-loaded";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { toast } from "@/hooks/use-toast";
+import { v4 as uuidv4 } from 'uuid';
 
 // Component for displaying a participant item in the list
 const ParticipantItem = ({ index, participant, isPayer }) => (
@@ -34,6 +35,8 @@ export default function Home() {
   const [payer, setPayer] = useState<string>("");
   const [currency, setCurrency] = useState<string>("USD");
   const [isCalculating, setIsCalculating] = useState(false);
+  const [expenseType, setExpenseType] = useState<string>("Food/Meal"); // Default expense type
+  const [expenseTypes, setExpenseTypes] = useState<string[]>(["Food/Meal", "Shopping", "Travel"]); // Initial expense types
 
   // Error states
   const [billAmountError, setBillAmountError] = useState<string | null>(null);
@@ -145,6 +148,14 @@ export default function Home() {
 
   const currencySymbol = currencySymbols[currency] || "$";
 
+    const handleAddExpenseType = () => {
+        // Prompt the user to enter a new expense type
+        const newExpenseType = prompt("Enter a new expense type:");
+        if (newExpenseType && newExpenseType.trim() !== "") {
+            setExpenseTypes([...expenseTypes, newExpenseType.trim()]);
+        }
+    };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-4 bg-gradient-to-br from-green-100 to-teal-50 font-sans">
       <Card className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200">
@@ -154,6 +165,36 @@ export default function Home() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+
+          {/* Expense Details Section */}
+          <section className="space-y-4">
+            <Label htmlFor="expenseType" className="text-gray-700 font-medium">
+              Expense Details
+            </Label>
+            <div className="flex items-center space-x-2">
+              <Select onValueChange={setExpenseType} defaultValue={expenseType}>
+                <SelectTrigger className="w-48 rounded-md">
+                  <SelectValue placeholder={expenseType} />
+                </SelectTrigger>
+                <SelectContent>
+                  {expenseTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleAddExpenseType}
+                className="h-9 w-9"
+              >
+                <Edit className="h-4 w-4" />
+                <span className="sr-only">Edit Expense Types</span>
+              </Button>
+            </div>
+          </section>
 
           {/* Bill Amount Section */}
           <section className="space-y-4">
@@ -330,7 +371,3 @@ export default function Home() {
     </div>
   );
 }
-
-
-
-
