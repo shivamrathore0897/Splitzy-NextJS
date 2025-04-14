@@ -159,24 +159,13 @@ export default function Home() {
             <Label htmlFor="billAmount" className="text-gray-700 font-medium">
               Bill Amount
             </Label>
-            <div className="flex space-x-2">
-              <Input
-                id="billAmount"
-                type="number"
-                placeholder="Enter bill amount"
-                className="rounded-md text-gray-700 shadow-sm focus:ring-teal-500 focus:border-teal-500"
-                value={billAmount === null ? "" : billAmount.toString()}
-                onChange={(e) => {
-                  const value = parseFloat(e.target.value);
-                  setBillAmount(isNaN(value) ? null : value);
-                }}
-              />
+            <div className="flex ">
 
               {/* Currency Selection Section */}
 
               <Select onValueChange={setCurrency} defaultValue={currency} >
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue placeholder="Currency" />
+                <SelectTrigger className="w-[80px] rounded-r-none">
+                  <SelectValue placeholder={currencySymbol} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="USD">USD - US Dollar</SelectItem>
@@ -185,6 +174,18 @@ export default function Home() {
                   <SelectItem value="INR">INR - Indian Rupee</SelectItem>
                 </SelectContent>
               </Select>
+
+              <Input
+                id="billAmount"
+                type="number"
+                placeholder="Enter bill amount"
+                className="rounded-l-none text-gray-700 shadow-sm focus:ring-teal-500 focus:border-teal-500"
+                value={billAmount === null ? "" : billAmount.toString()}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value);
+                  setBillAmount(isNaN(value) ? null : value);
+                }}
+              />
             </div>
             {billAmountError && (
               <Alert variant="destructive">
