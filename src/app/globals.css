@@ -1,10 +1,10 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
   font-family: 'Manrope', sans-serif;
+  font-display: swap; /* Add font-display: swap */
 }
 
 @layer base {
@@ -87,5 +87,4 @@ body {
     @apply bg-background text-foreground;
   }
 }
-
 

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { User, Wallet, History, CheckCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { cn } from "@/lib/utils";
+import { useIsFontLoaded } from "@/hooks/use-is-font-loaded";
 
 // Component for displaying a participant item in the list
 const ParticipantItem = ({ index, participant, isPayer }) => (
@@ -279,3 +280,4 @@ export default function Home() {
     </div>
   );
 }
+
