@@ -273,7 +273,7 @@ export default function Home() {
 
       <footer className="mt-8 text-center text-gray-500">
         <p>
-          Created by Firebase Studio
+        Made with ❤️ just for you
         </p>
       </footer>
     </div>
