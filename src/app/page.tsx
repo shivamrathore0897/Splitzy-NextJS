@@ -218,7 +218,7 @@ export default function Home() {
               </Button>
             </div>
             {participantNameError && (
-              <Alert variant="destructive">
+              <Alert variant="destructive" className="animate-shake">
                 <AlertTitle>
                   <AlertTriangle className="h-4 w-4 mr-2" />
                   Error

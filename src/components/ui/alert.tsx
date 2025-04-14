@@ -3,14 +3,30 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
+// const alertVariants = cva(
+//   "relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground",
+//   {
+//     variants: {
+//       variant: {
+//         default: "bg-background text-foreground",
+//         destructive:
+//           "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive",
+//       },
+//     },
+//     defaultVariants: {
+//       variant: "default",
+//     },
+//   }
+// )
+
 const alertVariants = cva(
-  "relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground",
+  "relative w-full rounded-lg border p-4 transition-all duration-300 animate-in fade-in zoom-in-95",
   {
     variants: {
       variant: {
         default: "bg-background text-foreground",
         destructive:
-          "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive",
+          "bg-red-50 text-red-800 border-red-300 dark:bg-red-900/30 dark:text-red-200 dark:border-red-700 [&>svg]:text-red-600 dark:[&>svg]:text-red-300",
       },
     },
     defaultVariants: {
@@ -18,6 +34,9 @@ const alertVariants = cva(
     },
   }
 )
+
+
+
 
 const Alert = React.forwardRef<
   HTMLDivElement,
@@ -38,7 +57,7 @@ const AlertTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h5
     ref={ref}
-    className={cn("mb-1 font-medium leading-none tracking-tight", className)}
+    className={cn("flex font-bold mb-1 leading-none tracking-tight", className)}
     {...props}
   />
 ))
