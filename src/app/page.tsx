@@ -125,9 +125,7 @@ export default function Home() {
       // Calculate split amount
       const splitAmount = billAmount! / participants.length;
       const newOwedAmounts: { [name: string]: number } = {};
-            const newIndividualOwedAmounts: { [payer: string]: { [owee: string]: number } } = {
-                ...individualOwedAmounts
-            };
+            const newIndividualOwedAmounts: { [payer: string]: { [owee: string]: number } } = {};
 
       // Calculate owed amounts for each participant
       participants.forEach((participant) => {
@@ -145,7 +143,22 @@ export default function Home() {
 
       // Update owed amounts state
       setOwedAmounts(newOwedAmounts);
-            setIndividualOwedAmounts(newIndividualOwedAmounts);
+            // Consolidate individual owed amounts
+            setIndividualOwedAmounts(prevIndividualOwedAmounts => {
+                const updatedIndividualOwedAmounts = { ...prevIndividualOwedAmounts };
+
+                if (!updatedIndividualOwedAmounts[payer]) {
+                    updatedIndividualOwedAmounts[payer] = {};
+                }
+
+                participants.forEach(participant => {
+                    if (payer !== participant) {
+                        updatedIndividualOwedAmounts[payer][participant] = splitAmount;
+                    }
+                });
+
+                return updatedIndividualOwedAmounts;
+            });
       setExpenses([...expenses, {
         type: expenseType,
         amount: billAmount,
@@ -167,6 +180,9 @@ export default function Home() {
     EUR: "€",
     GBP: "£",
     INR: "₹",
+    JPY: "¥",
+    CAD: "C$",
+    AUD: "A$",
   };
 
   const currencySymbol = currencySymbols[currency] || "$";
@@ -197,12 +213,24 @@ export default function Home() {
       const calculateNetOwedAmounts = () => {
           let netOwed: { [name: string]: number } = {};
 
-          Object.entries(individualOwedAmounts).forEach(([payer, owees]) => {
-              Object.entries(owees).forEach(([owee, amount]) => {
-                  netOwed[payer] = (netOwed[payer] || 0) - amount;
-                  netOwed[owee] = (netOwed[owee] || 0) + amount;
-              });
-          });
+        expenses.forEach(expense => {
+            Object.entries(expense.owedAmounts).forEach(([owee, amount]) => {
+                if (!netOwed[owee]) {
+                    netOwed[owee] = 0;
+                }
+
+                // Adjust the net owed amount based on the payer
+                if (expense.payer !== owee) {
+                    netOwed[owee] += amount; // Owee receives
+                }
+            });
+
+            // Deduct the total paid amount from the payer's balance
+            if (!netOwed[expense.payer]) {
+                netOwed[expense.payer] = 0;
+            }
+            netOwed[expense.payer] -= expense.amount / expense.participants.length * (expense.participants.length - 1);
+        });
 
           return netOwed;
       };
@@ -433,6 +461,21 @@ export default function Home() {
                                 ))}
                             </ul>
                             </section>
+
+                    <section className="mt-6 space-y-4">
+                        <Label className="text-gray-700 font-medium">Net Owed Amounts:</Label>
+                        <ul>
+                            {Object.entries(calculateNetOwedAmounts()).map(([name, amount]) => (
+                                <li key={name} className="flex items-center justify-between py-2 border-b border-gray-200">
+                                    <div className="flex items-center space-x-2">
+                                        <User className="mr-1 h-4 w-4 text-gray-500" />
+                                        <span className="text-gray-800">{name}</span>
+                                    </div>
+                                    <span className="text-gray-700">{currencySymbol}{amount.toFixed(2)}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
                     </TabsContent>
                         </Tabs>
           </CardContent>
