@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { User, Wallet, History, CheckCircle } from 'lucide-react';
+import { User, Wallet, History, CheckCircle, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { cn } from "@/lib/utils";
 import { useIsFontLoaded } from "@/hooks/use-is-font-loaded";
@@ -182,7 +182,7 @@ export default function Home() {
                 id="billAmount"
                 type="number"
                 placeholder="Enter bill amount"
-                className="rounded-l-none text-gray-700 shadow-sm focus:ring-teal-500 focus:border-teal-500"
+                className="rounded-l-none text-gray-700 shadow-sm"
                 value={billAmount === null ? "" : billAmount.toString()}
                 onChange={(e) => {
                   const value = parseFloat(e.target.value);
@@ -208,7 +208,7 @@ export default function Home() {
                 id="participantName"
                 type="text"
                 placeholder="Enter participant name"
-                className="rounded-md text-gray-700 shadow-sm focus:ring-teal-500 focus:border-teal-500"
+                className="rounded-md text-gray-700 shadow-sm"
                 value={participantName}
                 onChange={(e) => setParticipantName(e.target.value)}
               />
@@ -219,7 +219,10 @@ export default function Home() {
             </div>
             {participantNameError && (
               <Alert variant="destructive">
-                <AlertTitle>Error</AlertTitle>
+                <AlertTitle>
+                  <AlertTriangle className="h-4 w-4 mr-2" />
+                  Error
+                </AlertTitle>
                 <AlertDescription>{participantNameError}</AlertDescription>
               </Alert>
             )}
@@ -240,7 +243,10 @@ export default function Home() {
             )}
             {participantsError && (
               <Alert variant="destructive">
-                <AlertTitle>Error</AlertTitle>
+                <AlertTitle>
+                  <AlertTriangle className="h-4 w-4 mr-2" />
+                  Error
+                </AlertTitle>
                 <AlertDescription>{participantsError}</AlertDescription>
               </Alert>
             )}
@@ -250,7 +256,7 @@ export default function Home() {
           <section className="space-y-4">
             <Label className="text-gray-700 font-medium">Who Paid?</Label>
             <select
-              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:ring-teal-500 focus:border-teal-500"
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm"
               onChange={(e) => setPayer(e.target.value)}
               value={payer}
             >
@@ -263,7 +269,10 @@ export default function Home() {
             </select>
             {payerError && (
               <Alert variant="destructive">
-                <AlertTitle>Error</AlertTitle>
+                <AlertTitle>
+                  <AlertTriangle className="h-4 w-4 mr-2" />
+                  Error
+                </AlertTitle>
                 <AlertDescription>{payerError}</AlertDescription>
               </Alert>
             )}
@@ -321,6 +330,7 @@ export default function Home() {
     </div>
   );
 }
+
 
 
 
