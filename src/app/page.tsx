@@ -5,13 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { User, Wallet, History, CheckCircle, AlertTriangle, Edit } from 'lucide-react';
+import { User, Wallet, History, CheckCircle, AlertTriangle, Edit, IndianRupee, Euro, DollarSign, PoundSterling } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "@/hooks/use-toast";
 import { v4 as uuidv4 } from 'uuid';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Component for displaying a participant item in the list
 const ParticipantItem = ({ index, participant, isPayer }) => (
@@ -32,6 +33,8 @@ export default function Home() {
   const [participants, setParticipants] = useState<string[]>([]);
   const [participantName, setParticipantName] = useState("");
   const [owedAmounts, setOwedAmounts] = useState<{ [name: string]: number }>({});
+    const [individualOwedAmounts, setIndividualOwedAmounts] = useState<{ [payer: string]: { [owee: string]: number } }>({});
+
   const [payer, setPayer] = useState<string>("");
   const [currency, setCurrency] = useState<string>("USD");
   const [isCalculating, setIsCalculating] = useState(false);
@@ -40,6 +43,7 @@ export default function Home() {
   const [expenses, setExpenses] = useState<any[]>([]);
     const [isEditingExpenseType, setIsEditingExpenseType] = useState(false);
     const [newExpenseType, setNewExpenseType] = useState("");
+    const [activeTab, setActiveTab] = useState("expenseDetails");
 
   // Error states
   const [billAmountError, setBillAmountError] = useState<string | null>(null);
@@ -121,6 +125,9 @@ export default function Home() {
       // Calculate split amount
       const splitAmount = billAmount! / participants.length;
       const newOwedAmounts: { [name: string]: number } = {};
+            const newIndividualOwedAmounts: { [payer: string]: { [owee: string]: number } } = {
+                ...individualOwedAmounts
+            };
 
       // Calculate owed amounts for each participant
       participants.forEach((participant) => {
@@ -129,11 +136,16 @@ export default function Home() {
         }
         else {
           newOwedAmounts[participant] = splitAmount;
-        }
+                    if (!newIndividualOwedAmounts[payer]) {
+                        newIndividualOwedAmounts[payer] = {};
+                    }
+                    newIndividualOwedAmounts[payer][participant] = splitAmount;
+                }
       });
 
       // Update owed amounts state
       setOwedAmounts(newOwedAmounts);
+            setIndividualOwedAmounts(newIndividualOwedAmounts);
       setExpenses([...expenses, {
         type: expenseType,
         amount: billAmount,
@@ -182,6 +194,19 @@ export default function Home() {
       return totalOwed;
     }
 
+      const calculateNetOwedAmounts = () => {
+          let netOwed: { [name: string]: number } = {};
+
+          Object.entries(individualOwedAmounts).forEach(([payer, owees]) => {
+              Object.entries(owees).forEach(([owee, amount]) => {
+                  netOwed[payer] = (netOwed[payer] || 0) - amount;
+                  netOwed[owee] = (netOwed[owee] || 0) + amount;
+              });
+          });
+
+          return netOwed;
+      };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-4 bg-gradient-to-br from-green-100 to-teal-50 font-sans">
       <Card className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200">
@@ -191,6 +216,13 @@ export default function Home() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+          
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+                        <TabsList>
+                            <TabsTrigger value="expenseDetails">Expense Details</TabsTrigger>
+                            <TabsTrigger value="owedBreakdown">Owed Breakdown</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="expenseDetails" className="space-y-6">
 
           {/* Expense Details Section */}
           <section className="space-y-4">
@@ -256,6 +288,9 @@ export default function Home() {
                   <SelectItem value="EUR">EUR - €</SelectItem>
                   <SelectItem value="GBP">GBP - £</SelectItem>
                   <SelectItem value="INR">INR - ₹</SelectItem>
+                                        <SelectItem value="JPY">JPY - ¥</SelectItem>
+                                        <SelectItem value="CAD">CAD - C$</SelectItem>
+                                        <SelectItem value="AUD">AUD - A$</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -373,6 +408,33 @@ export default function Home() {
             <Wallet className="mr-2 h-4 w-4" />
             Calculate Split
           </Button>
+           </TabsContent>
+                    <TabsContent value="owedBreakdown" className="space-y-6">
+                        <section className="mt-6 space-y-4">
+                            <Label className="text-gray-700 font-medium">Detailed Owed Amounts:</Label>
+                            <ul>
+                                {Object.entries(individualOwedAmounts).map(([payer, owees]) => (
+                                    <li key={payer} className="mb-4">
+                                        <Label className="font-semibold text-gray-800">
+                                            {payer} (Payer) is owed by:
+                                        </Label>
+                                        <ul>
+                                            {Object.entries(owees).map(([owee, amount]) => (
+                                                <li key={owee} className="flex items-center justify-between py-2 border-b border-gray-200">
+                                                    <div className="flex items-center space-x-2">
+                                                        <User className="mr-1 h-4 w-4 text-gray-500" />
+                                                        <span className="text-gray-800">{owee}</span>
+                                                    </div>
+                                                    <span className="text-gray-700">{currencySymbols[currency]}{amount.toFixed(2)}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </li>
+                                ))}
+                            </ul>
+                            </section>
+                    </TabsContent>
+                        </Tabs>
           </CardContent>
           </Card>
             
@@ -451,5 +513,3 @@ export default function Home() {
     </div>
   );
 }
-
-
