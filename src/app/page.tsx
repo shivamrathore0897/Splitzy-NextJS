@@ -1,26 +1,41 @@
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { User, Wallet, History, CheckCircle, AlertTriangle, Edit, IndianRupee, Euro, DollarSign, PoundSterling } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { cn } from "@/lib/utils";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { toast } from "@/hooks/use-toast";
-import { v4 as uuidv4 } from 'uuid';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {useState, useRef, useEffect} from 'react';
+import {Input} from "@/components/ui/input";
+import {Button} from "@/components/ui/button";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Label} from "@/components/ui/label";
+import {
+  User,
+  Wallet,
+  History,
+  CheckCircle,
+  AlertTriangle,
+  Edit,
+  IndianRupee,
+  Euro,
+  DollarSign,
+  PoundSterling,
+  Sun,
+  Moon,
+} from 'lucide-react';
+import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert"
+import {cn} from "@/lib/utils";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
+import {toast} from "@/hooks/use-toast";
+import {v4 as uuidv4} from 'uuid';
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
+import {useTheme} from 'next-themes';
+import {useEffect as useReactEffect} from 'react';
 
 // Component for displaying a participant item in the list
-const ParticipantItem = ({ index, participant, isPayer }) => (
+const ParticipantItem = ({index, participant, isPayer}: any) => (
   <li key={index} className="flex items-center space-x-2 py-1">
     {isPayer ? (
-      <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
+      <CheckCircle className="mr-1 h-4 w-4 text-green-500"/>
     ) : (
-      <User className="mr-1 h-4 w-4 text-gray-500" />
+      <User className="mr-1 h-4 w-4 text-gray-500"/>
     )}
     <span className="text-gray-700">{index + 1}. {participant}</span>
   </li>
@@ -28,7 +43,8 @@ const ParticipantItem = ({ index, participant, isPayer }) => (
 
 
 export default function Home() {
-  // State variables
+  const {theme, setTheme} = useTheme();
+
   const [billAmount, setBillAmount] = useState<number | null>(null);
   const [participants, setParticipants] = useState<string[]>([]);
   const [participantName, setParticipantName] = useState("");
@@ -131,8 +147,7 @@ export default function Home() {
       participants.forEach((participant) => {
         if (payer === participant) {
           newOwedAmounts[participant] = 0; // Payer already paid
-        }
-        else {
+        } else {
           newOwedAmounts[participant] = splitAmount;
           if (!newIndividualOwedAmounts[payer]) {
             newIndividualOwedAmounts[payer] = {};
@@ -145,7 +160,7 @@ export default function Home() {
       setOwedAmounts(newOwedAmounts);
       // Consolidate individual owed amounts
       setIndividualOwedAmounts(prevIndividualOwedAmounts => {
-        const updatedIndividualOwedAmounts = { ...prevIndividualOwedAmounts };
+        const updatedIndividualOwedAmounts = {...prevIndividualOwedAmounts};
 
         if (!updatedIndividualOwedAmounts[payer]) {
           updatedIndividualOwedAmounts[payer] = {};
@@ -244,7 +259,7 @@ export default function Home() {
       .sort(([, amountA], [, amountB]) => amountB - amountA)
       .map(([name]) => name);
 
-    let balances = { ...netOwed }; // Copy of netOwed to manipulate balances
+    let balances = {...netOwed}; // Copy of netOwed to manipulate balances
 
     for (let i = 0; i < sortedParticipants.length; i++) {
       const debtor = sortedParticipants[i];
@@ -274,6 +289,11 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-4 bg-gradient-to-br from-green-100 to-teal-50 font-sans">
+      <Button variant="outline" size="icon" className="absolute top-4 right-4" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
+        {theme === 'light' ? <Moon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"/> :
+          <Sun className="h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"/>}
+        <span className="sr-only">Toggle theme</span>
+      </Button>
       <Card className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200">
         <CardHeader>
           <CardTitle className="text-3xl font-semibold text-center text-gray-800">
@@ -297,7 +317,7 @@ export default function Home() {
                 <div className="flex items-center space-x-2">
                   <Select onValueChange={setExpenseType} value={expenseType}>
                     <SelectTrigger className="w-48 rounded-md">
-                      <SelectValue placeholder={expenseType} />
+                      <SelectValue placeholder={expenseType}/>
                     </SelectTrigger>
                     <SelectContent>
                       {expenseTypes.map((type) => (
@@ -313,7 +333,7 @@ export default function Home() {
                     onClick={handleAddExpenseType}
                     className="h-9 w-9"
                   >
-                    <Edit className="h-4 w-4" />
+                    <Edit className="h-4 w-4"/>
                     <span className="sr-only">Edit Expense Types</span>
                   </Button>
                 </div>
@@ -394,14 +414,14 @@ export default function Home() {
                     onChange={(e) => setParticipantName(e.target.value)}
                   />
                   <Button onClick={handleAddParticipant} className="bg-teal-500 text-white hover:bg-teal-600 rounded-md shadow-md">
-                    <User className="mr-2 h-4 w-4" />
+                    <User className="mr-2 h-4 w-4"/>
                     Add
                   </Button>
                 </div>
                 {participantNameError && (
                   <Alert variant="destructive" className="animate-shake">
                     <AlertTitle>
-                      <AlertTriangle className="h-4 w-4 mr-2" />
+                      <AlertTriangle className="h-4 w-4 mr-2"/>
                       Error
                     </AlertTitle>
                     <AlertDescription>{participantNameError}</AlertDescription>
@@ -425,7 +445,7 @@ export default function Home() {
                 {participantsError && (
                   <Alert variant="destructive">
                     <AlertTitle>
-                      <AlertTriangle className="h-4 w-4 mr-2" />
+                      <AlertTriangle className="h-4 w-4 mr-2"/>
                       Error
                     </AlertTitle>
                     <AlertDescription>{participantsError}</AlertDescription>
@@ -451,14 +471,13 @@ export default function Home() {
                 {payerError && (
                   <Alert variant="destructive">
                     <AlertTitle>
-                      <AlertTriangle className="h-4 w-4 mr-2" />
+                      <AlertTriangle className="h-4 w-4 mr-2"/>
                       Error
                     </AlertTitle>
                     <AlertDescription>{payerError}</AlertDescription>
                   </Alert>
                 )}
               </section>
-
 
 
               {/* Calculate Split Button */}
@@ -470,7 +489,7 @@ export default function Home() {
                 onClick={handleCalculateSplit}
                 disabled={isCalculating || isCalculateDisabled}
               >
-                <Wallet className="mr-2 h-4 w-4" />
+                <Wallet className="mr-2 h-4 w-4"/>
                 Calculate Split
               </Button>
             </TabsContent>
@@ -481,10 +500,10 @@ export default function Home() {
                   {calculateSimplifiedOwedAmounts().map((transaction, index) => (
                     <li key={index} className="flex items-center justify-between py-2 border-b border-gray-200">
                       <div className="flex items-center space-x-2">
-                        <User className="mr-1 h-4 w-4 text-gray-500" />
+                        <User className="mr-1 h-4 w-4 text-gray-500"/>
                         <span className="text-gray-800">{transaction.from}</span>
                         <span className="text-gray-500">owes</span>
-                        <User className="mr-1 h-4 w-4 text-gray-500" />
+                        <User className="mr-1 h-4 w-4 text-gray-500"/>
                         <span className="text-gray-800">{transaction.to}</span>
                       </div>
                       <span className="text-gray-700">{currencySymbol}{transaction.amount.toFixed(2)}</span>
@@ -516,12 +535,12 @@ export default function Home() {
                       <div className="flex items-center space-x-2">
                         {expense.payer === name ? (
                           <>
-                            <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
+                            <CheckCircle className="mr-1 h-4 w-4 text-green-500"/>
                             <span className="font-semibold text-gray-800">{name} (Payer)</span>
                           </>
                         ) : (
                           <>
-                            <User className="mr-1 h-4 w-4 text-gray-500" />
+                            <User className="mr-1 h-4 w-4 text-gray-500"/>
                             <span className="text-gray-800">{name}</span>
                           </>
                         )}
@@ -553,7 +572,7 @@ export default function Home() {
                 {Object.entries(totalOwedAmounts()).map(([name, amount]) => (
                   <li key={name} className="flex items-center justify-between py-2 border-b border-gray-200">
                     <div className="flex items-center space-x-2">
-                      <User className="mr-1 h-4 w-4 text-gray-500" />
+                      <User className="mr-1 h-4 w-4 text-gray-500"/>
                       <span className="text-gray-800">{name}</span>
                     </div>
                     <span className="text-gray-700">{currencySymbol}{amount.toFixed(2)}</span>
@@ -574,5 +593,3 @@ export default function Home() {
     </div>
   );
 }
-
-
