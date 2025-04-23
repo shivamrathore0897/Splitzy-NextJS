@@ -8,6 +8,8 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  output: 'export', // Enables static HTML export
+  trailingSlash: true, // Ensures proper routing in Capacitor
 };
 
 export default nextConfig;

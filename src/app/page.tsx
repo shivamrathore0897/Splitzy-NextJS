@@ -61,7 +61,7 @@ export default function Home() {
   const [individualOwedAmounts, setIndividualOwedAmounts] = useState<{ [payer: string]: { [owee: string]: number } }>({});
 
   const [payer, setPayer] = useState<string>("");
-  const [currency, setCurrency] = useState<string>("USD");
+  const [currency, setCurrency] = useState<string>("INR");
   const [isCalculating, setIsCalculating] = useState(false);
   const [expenseType, setExpenseType] = useState<string>("Food/Meal"); // Default expense type
   const [expenseTypes, setExpenseTypes] = useState<string[]>(["Food/Meal", "Shopping", "Travel"]); // Initial expense types
@@ -200,16 +200,16 @@ export default function Home() {
   const isCalculateDisabled = !billAmount || !payer || !currency;
 
   const currencySymbols: any = {
+    INR: "₹",
     USD: "$",
     EUR: "€",
     GBP: "£",
-    INR: "₹",
     JPY: "¥",
     CAD: "C$",
     AUD: "A$",
   };
 
-  const currencySymbol = currencySymbols[currency] || "$";
+  const currencySymbol = currencySymbols[currency] || "₹";
 
   const handleAddExpenseType = () => {
     setIsEditingExpenseType(true);
@@ -528,8 +528,6 @@ export default function Home() {
           </Tabs>
         </CardContent>
       </Card>
-
-
       {expenses.map((expense, index) => (
         <Card key={index} className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200 mt-4">
           <CardHeader>
@@ -569,7 +567,6 @@ export default function Home() {
           </CardContent>
         </Card>
       ))}
-
       <Card className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200 mt-4">
         <CardHeader>
           <CardTitle className="text-3xl font-semibold text-center text-gray-800">
@@ -596,8 +593,6 @@ export default function Home() {
           )}
         </CardContent>
       </Card>
-
-
       <footer className="mt-8 text-center text-gray-500">
         <p>
           Made with ❤️ just for you
