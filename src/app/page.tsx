@@ -43,7 +43,16 @@ const ParticipantItem = ({index, participant, isPayer}: any) => (
 
 
 export default function Home() {
-  const {theme, setTheme} = useTheme();
+  const {theme: initialTheme, setTheme} = useTheme();
+  const [mounted, setMounted] = useState(false); // Track if component has mounted
+
+  // Wait for the component to mount before accessing the theme to avoid hydration issues
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Safely access the theme after the component has mounted
+  const theme = mounted ? initialTheme : "light";
 
   const [billAmount, setBillAmount] = useState<number | null>(null);
   const [participants, setParticipants] = useState<string[]>([]);
@@ -290,8 +299,12 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-4 bg-gradient-to-br from-green-100 to-teal-50 font-sans">
       <Button variant="outline" size="icon" className="absolute top-4 right-4 z-10" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
-        {theme === 'light' ? <Moon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"/> :
-          <Sun className="h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"/>}
+        {/* Conditionally render the icon based on the current theme */}
+        {theme === 'light' ? (
+          <Moon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"/>
+        ) : (
+          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"/>
+        )}
         <span className="sr-only">Toggle theme</span>
       </Button>
       <Card className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200">
