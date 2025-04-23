@@ -1,10 +1,10 @@
 "use client";
 
-import {useState, useRef, useEffect} from 'react';
-import {Input} from "@/components/ui/input";
-import {Button} from "@/components/ui/button";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
-import {Label} from "@/components/ui/label";
+import { useState, useRef, useEffect } from 'react';
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import {
   User,
   Wallet,
@@ -19,31 +19,31 @@ import {
   Sun,
   Moon,
 } from 'lucide-react';
-import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert"
-import {cn} from "@/lib/utils";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
-import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
-import {toast} from "@/hooks/use-toast";
-import {v4 as uuidv4} from 'uuid';
-import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
-import {useTheme} from 'next-themes';
-import {useEffect as useReactEffect} from 'react';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { toast } from "@/hooks/use-toast";
+import { v4 as uuidv4 } from 'uuid';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTheme } from 'next-themes';
+import { useEffect as useReactEffect } from 'react';
 
 // Component for displaying a participant item in the list
-const ParticipantItem = ({index, participant, isPayer}: any) => (
+const ParticipantItem = ({ index, participant, isPayer }: any) => (
   <li key={index} className="flex items-center space-x-2 py-1">
     {isPayer ? (
-      <CheckCircle className="mr-1 h-4 w-4 text-green-500"/>
+      <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
     ) : (
-      <User className="mr-1 h-4 w-4 text-gray-500"/>
+      <User className="mr-1 h-4 w-4 text-foreground" />
     )}
-    <span className="text-gray-700">{index + 1}. {participant}</span>
+    <span className="text-foreground/50">{index + 1}. {participant}</span>
   </li>
 );
 
 
 export default function Home() {
-  const {theme: initialTheme, setTheme} = useTheme();
+  const { theme: initialTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false); // Track if component has mounted
 
   // Wait for the component to mount before accessing the theme to avoid hydration issues
@@ -169,7 +169,7 @@ export default function Home() {
       setOwedAmounts(newOwedAmounts);
       // Consolidate individual owed amounts
       setIndividualOwedAmounts(prevIndividualOwedAmounts => {
-        const updatedIndividualOwedAmounts = {...prevIndividualOwedAmounts};
+        const updatedIndividualOwedAmounts = { ...prevIndividualOwedAmounts };
 
         if (!updatedIndividualOwedAmounts[payer]) {
           updatedIndividualOwedAmounts[payer] = {};
@@ -268,7 +268,7 @@ export default function Home() {
       .sort(([, amountA], [, amountB]) => amountB - amountA)
       .map(([name]) => name);
 
-    let balances = {...netOwed}; // Copy of netOwed to manipulate balances
+    let balances = { ...netOwed }; // Copy of netOwed to manipulate balances
 
     for (let i = 0; i < sortedParticipants.length; i++) {
       const debtor = sortedParticipants[i];
@@ -298,20 +298,20 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-4 bg-gradient-to-br from-green-100 to-teal-50 font-sans">
-      <Button variant="outline" size="icon" className="absolute top-4 right-4 z-10" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
-        {/* Conditionally render the icon based on the current theme */}
-        {theme === 'light' ? (
-          <Moon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"/>
-        ) : (
-          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"/>
-        )}
-        <span className="sr-only">Toggle theme</span>
-      </Button>
-      <Card className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200">
+      <Card className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200 dark:bg-gray-800/80 dark:border-gray-700">
         <CardHeader>
-          <CardTitle className="text-3xl font-semibold text-center text-gray-800">
+          <CardTitle className="text-3xl font-semibold text-center text-foreground">
             Splitzy
           </CardTitle>
+          <Button variant="outline" size="icon" className="absolute top-4 right-4 z-10 inline-flex items-center justify-center rounded-full p-2 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
+            {/* Conditionally render the icon based on the current theme */}
+            {theme === 'light' ? (
+              <Moon className="h-[1.2rem] w-[1.2rem] text-gray-900 dark:text-gray-100 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            ) : (
+              <Sun color="white" className="h-[1.2rem] w-[1.2rem] text-gray-900 light:text-gray-100 rotate-0 scale-100 transition-all light:-rotate-90 light:scale-0" />
+            )}
+            <span className="sr-only">Toggle theme</span>
+          </Button>
         </CardHeader>
         <CardContent className="space-y-6">
 
@@ -323,14 +323,14 @@ export default function Home() {
             <TabsContent value="expenseDetails" className="space-y-6">
 
               {/* Expense Details Section */}
-              <section className="space-y-4">
-                <Label htmlFor="expenseType" className="text-gray-700 font-medium">
+              <section className="space-y-2">
+                <Label htmlFor="expenseType" className="text-foreground/50 font-medium">
                   Expense Details
                 </Label>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 space-y-1">
                   <Select onValueChange={setExpenseType} value={expenseType}>
                     <SelectTrigger className="w-48 rounded-md">
-                      <SelectValue placeholder={expenseType}/>
+                      <SelectValue placeholder={expenseType} />
                     </SelectTrigger>
                     <SelectContent>
                       {expenseTypes.map((type) => (
@@ -346,7 +346,7 @@ export default function Home() {
                     onClick={handleAddExpenseType}
                     className="h-9 w-9"
                   >
-                    <Edit className="h-4 w-4"/>
+                    <Edit className="h-4 w-4" />
                     <span className="sr-only">Edit Expense Types</span>
                   </Button>
                 </div>
@@ -355,7 +355,7 @@ export default function Home() {
                     <Input
                       type="text"
                       placeholder="Enter new expense type"
-                      className="rounded-md text-gray-700 shadow-sm"
+                      className="rounded-md text-foreground/50 shadow-sm"
                       value={newExpenseType}
                       onChange={(e) => setNewExpenseType(e.target.value)}
                     />
@@ -367,8 +367,8 @@ export default function Home() {
               </section>
 
               {/* Bill Amount Section */}
-              <section className="space-y-4">
-                <Label htmlFor="billAmount" className="text-gray-700 font-medium">
+              <section className="space-y-2">
+                <Label htmlFor="billAmount" className="text-foreground/50 font-medium">
                   Bill Amount
                 </Label>
                 <div className="flex ">
@@ -396,7 +396,7 @@ export default function Home() {
                     id="billAmount"
                     type="number"
                     placeholder="Enter bill amount"
-                    className="rounded-l-none text-gray-700 shadow-sm"
+                    className="rounded-l-none text-foreground shadow-sm"
                     value={billAmount === null ? "" : billAmount.toString()}
                     onChange={(e) => {
                       const value = parseFloat(e.target.value);
@@ -413,8 +413,8 @@ export default function Home() {
               </section>
 
               {/* Participants Section */}
-              <section className="space-y-4">
-                <Label htmlFor="participantName" className="text-gray-700 font-medium">
+              <section className="space-y-2">
+                <Label htmlFor="participantName" className="text-foreground/50 font-medium">
                   Participants
                 </Label>
                 <div className="flex space-x-2">
@@ -422,19 +422,19 @@ export default function Home() {
                     id="participantName"
                     type="text"
                     placeholder="Enter participant name"
-                    className="rounded-md text-gray-700 shadow-sm"
+                    className="rounded-md text-foreground shadow-sm"
                     value={participantName}
                     onChange={(e) => setParticipantName(e.target.value)}
                   />
                   <Button onClick={handleAddParticipant} className="bg-teal-500 text-white hover:bg-teal-600 rounded-md shadow-md">
-                    <User className="mr-2 h-4 w-4"/>
+                    <User className="mr-2 h-4 w-4" />
                     Add
                   </Button>
                 </div>
                 {participantNameError && (
                   <Alert variant="destructive" className="animate-shake">
                     <AlertTitle>
-                      <AlertTriangle className="h-4 w-4 mr-2"/>
+                      <AlertTriangle className="h-4 w-4 mr-2" />
                       Error
                     </AlertTitle>
                     <AlertDescription>{participantNameError}</AlertDescription>
@@ -442,7 +442,7 @@ export default function Home() {
                 )}
                 {participants.length > 0 && (
                   <div className="mt-2">
-                    <Label className="text-gray-700 font-medium">List of Participants:</Label>
+                    <Label className="text-foreground/50 font-medium">List of Participants:</Label>
                     <ul>
                       {participants.map((participant, index) => (
                         <ParticipantItem
@@ -458,7 +458,7 @@ export default function Home() {
                 {participantsError && (
                   <Alert variant="destructive">
                     <AlertTitle>
-                      <AlertTriangle className="h-4 w-4 mr-2"/>
+                      <AlertTriangle className="h-4 w-4 mr-2" />
                       Error
                     </AlertTitle>
                     <AlertDescription>{participantsError}</AlertDescription>
@@ -467,10 +467,10 @@ export default function Home() {
               </section>
 
               {/* Payer Selection Section */}
-              <section className="space-y-4">
-                <Label className="text-gray-700 font-medium">Who Paid?</Label>
+              <section className="space-y-2">
+                <Label className="text-foreground/50 font-medium">Who Paid?</Label>
                 <select
-                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm"
+                  className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-foreground/50 dark:text-gray-300 shadow-sm"
                   onChange={(e) => setPayer(e.target.value)}
                   value={payer}
                 >
@@ -484,7 +484,7 @@ export default function Home() {
                 {payerError && (
                   <Alert variant="destructive">
                     <AlertTitle>
-                      <AlertTriangle className="h-4 w-4 mr-2"/>
+                      <AlertTriangle className="h-4 w-4 mr-2" />
                       Error
                     </AlertTitle>
                     <AlertDescription>{payerError}</AlertDescription>
@@ -502,24 +502,24 @@ export default function Home() {
                 onClick={handleCalculateSplit}
                 disabled={isCalculating || isCalculateDisabled}
               >
-                <Wallet className="mr-2 h-4 w-4"/>
+                <Wallet className="mr-2 h-4 w-4" />
                 Calculate Split
               </Button>
             </TabsContent>
             <TabsContent value="owedBreakdown" className="space-y-6">
-              <section className="mt-6 space-y-4">
-                <Label className="text-gray-700 font-medium">Simplified Owed Amounts:</Label>
+              <section className="mt-6 space-y-2">
+                <Label className="text-foreground/50 font-medium">Simplified Owed Amounts:</Label>
                 <ul>
                   {calculateSimplifiedOwedAmounts().map((transaction, index) => (
                     <li key={index} className="flex items-center justify-between py-2 border-b border-gray-200">
                       <div className="flex items-center space-x-2">
-                        <User className="mr-1 h-4 w-4 text-gray-500"/>
-                        <span className="text-gray-800">{transaction.from}</span>
-                        <span className="text-gray-500">owes</span>
-                        <User className="mr-1 h-4 w-4 text-gray-500"/>
-                        <span className="text-gray-800">{transaction.to}</span>
+                        {/* <User className="mr-1 h-4 w-4 text-foreground/50" /> */}
+                        <span className="text-foreground">{transaction.from}</span>
+                        <span className="text-foreground/50">owes</span>
+                        {/* <User className="mr-1 h-4 w-4 text-foreground/50" /> */}
+                        <span className="text-foreground">{transaction.to}</span>
                       </div>
-                      <span className="text-gray-700">{currencySymbol}{transaction.amount.toFixed(2)}</span>
+                      <span className="text-foreground">{currencySymbol}{transaction.amount.toFixed(2)}</span>
                     </li>
                   ))}
                 </ul>
@@ -529,63 +529,64 @@ export default function Home() {
         </CardContent>
       </Card>
       {expenses.map((expense, index) => (
-        <Card key={index} className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200 mt-4">
+        <Card key={index} className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200 mt-4 dark:bg-gray-800/80 dark:border-gray-700">
           <CardHeader>
-            <CardTitle className="text-3xl font-semibold text-center text-gray-800">
+            <CardTitle className="text-3xl font-semibold text-center text-foreground">
               Expense Details of : {expense.type}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Owed Amounts Display Section */}
             {Object.keys(expense.owedAmounts).length > 0 && (
-              <section className="mt-6 space-y-4">
-                <Label className="text-gray-700 font-medium">Owed Amounts:</Label>
+              <section className="mt-6 space-y-2">
+                <Label className="text-foreground/50 font-medium">Owed Amounts:</Label>
                 <ul>
                   {Object.entries(expense.owedAmounts).map(([name, amount]) => (
                     <li key={name} className="flex items-center justify-between py-2 border-b border-gray-200">
                       <div className="flex items-center space-x-2">
                         {expense.payer === name ? (
                           <>
-                            <CheckCircle className="mr-1 h-4 w-4 text-green-500"/>
-                            <span className="font-semibold text-gray-800">{name} (Payer)</span>
+                            <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
+                            <span className="font-semibold text-foreground">{name} (Payer)</span>
                           </>
                         ) : (
                           <>
-                            <User className="mr-1 h-4 w-4 text-gray-500"/>
-                            <span className="text-gray-800">{name}</span>
+                            <User className="mr-1 h-4 w-4 text-foreground" />
+                            <span className="text-foreground">{name}</span>
                           </>
                         )}
                       </div>
-                      <span className="text-gray-700">{currencySymbols[expense.currency]}{amount.toFixed(2)}</span>
+                      <span className="text-foreground">{currencySymbols[expense.currency]}{amount.toFixed(2)}</span>
                     </li>
                   ))}
                 </ul>
               </section>
             )}
-            <Label className="text-gray-700 font-medium">Total Amount Paid:</Label>
-            <span className="text-gray-700">{currencySymbols[expense.currency]}{expense.amount.toFixed(2)}</span>
+            <Label className="text-foreground/50 font-medium">Total Amount Paid : </Label>
+            <span className="text-foreground">{currencySymbols[expense.currency]}{expense.amount.toFixed(2)}</span>
           </CardContent>
         </Card>
       ))}
-      <Card className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200 mt-4">
+
+      <Card className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200 mt-4 dark:bg-gray-800/80 dark:border-gray-700">
         <CardHeader>
-          <CardTitle className="text-3xl font-semibold text-center text-gray-800">
+          <CardTitle className="text-3xl font-semibold text-center text-foreground">
             Total Owed Amounts:
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Owed Amounts Display Section */}
           {Object.keys(totalOwedAmounts()).length > 0 && (
-            <section className="mt-6 space-y-4">
-              <Label className="text-gray-700 font-medium">Total Owed Amounts:</Label>
+            <section className="mt-6 space-y-2">
+              {/* <Label className="text-foreground/50 font-medium">Total Owed Amounts:</Label> */}
               <ul>
                 {Object.entries(totalOwedAmounts()).map(([name, amount]) => (
                   <li key={name} className="flex items-center justify-between py-2 border-b border-gray-200">
                     <div className="flex items-center space-x-2">
-                      <User className="mr-1 h-4 w-4 text-gray-500"/>
-                      <span className="text-gray-800">{name}</span>
+                      <User className="mr-1 h-4 w-4 text-foreground" />
+                      <span className="text-foreground">{name}</span>
                     </div>
-                    <span className="text-gray-700">{currencySymbol}{amount.toFixed(2)}</span>
+                    <span className="text-foreground">{currencySymbol}{amount.toFixed(2)}</span>
                   </li>
                 ))}
               </ul>
