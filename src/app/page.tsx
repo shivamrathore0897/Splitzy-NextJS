@@ -289,7 +289,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-4 bg-gradient-to-br from-green-100 to-teal-50 font-sans">
-      <Button variant="outline" size="icon" className="absolute top-4 right-4" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
+      <Button variant="outline" size="icon" className="absolute top-4 right-4 z-10" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
         {theme === 'light' ? <Moon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"/> :
           <Sun className="h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"/>}
         <span className="sr-only">Toggle theme</span>
