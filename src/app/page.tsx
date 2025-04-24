@@ -18,6 +18,7 @@ import {
   PoundSterling,
   Sun,
   Moon,
+  Trash2,
 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { cn } from "@/lib/utils";
@@ -235,6 +236,12 @@ export default function Home() {
     }
     setIsEditingExpenseType(false);
     setNewExpenseType("");
+  };
+
+    const handleDeleteExpense = (indexToDelete: number) => {
+    const updatedExpenses = expenses.filter((_, index) => index !== indexToDelete);
+    setExpenses(updatedExpenses);
+    localStorage.setItem('expenses', JSON.stringify(updatedExpenses));
   };
 
 
@@ -544,10 +551,19 @@ export default function Home() {
       </Card>
       {expenses.map((expense, index) => (
         <Card key={index} className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200 mt-4 dark:bg-gray-800/80 dark:border-gray-700">
-          <CardHeader>
+          <CardHeader className="flex justify-between items-start">
             <CardTitle className="text-3xl font-semibold text-center text-foreground">
               Expense Details of : {expense.type}
             </CardTitle>
+             <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleDeleteExpense(index)}
+                className="h-8 w-8"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span className="sr-only">Delete Expense</span>
+              </Button>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Owed Amounts Display Section */}
@@ -616,3 +632,4 @@ export default function Home() {
     </div>
   );
 }
+
