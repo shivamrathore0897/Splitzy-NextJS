@@ -238,7 +238,7 @@ export default function Home() {
     setNewExpenseType("");
   };
 
-    const handleDeleteExpense = (indexToDelete: number) => {
+  const handleDeleteExpense = (indexToDelete: number) => {
     const updatedExpenses = expenses.filter((_, index) => index !== indexToDelete);
     setExpenses(updatedExpenses);
     localStorage.setItem('expenses', JSON.stringify(updatedExpenses));
@@ -491,7 +491,12 @@ export default function Home() {
               <section className="space-y-2">
                 <Label className="text-foreground/50 font-medium">Who Paid?</Label>
                 <select
-                  className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-foreground/50 dark:text-gray-300 shadow-sm"
+                  className="h-10 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-foreground/50 dark:text-gray-300 shadow-sm appearance-none bg-no-repeat bg-right"
+                  style={{
+                    backgroundImage:
+                      'url(data:image/svg+xml;base64,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0Ljk1IDEwIj48ZGVmcz48c3R5bGU+LmNscy0xe2ZpbGw6I2ZmZjt9LmNscy0ye2ZpbGw6IzQ0NDt9PC9zdHlsZT48L2RlZnM+PHRpdGxlPmFycm93czwvdGl0bGU+PHJlY3QgY2xhc3M9ImNscy0xIiB3aWR0aD0iNC45NSIgaGVpZ2h0PSIxMCIvPjxwb2x5Z29uIGNsYXNzPSJjbHMtMiIgcG9pbnRzPSIxLjQxIDQuNjcgMi40OCAzLjE4IDMuNTQgNC42NyAxLjQxIDQuNjciLz48cG9seWdvbiBjbGFzcz0iY2xzLTIiIHBvaW50cz0iMy41NCA1LjMzIDIuNDggNi44MiAxLjQxIDUuMzMgMy41NCA1LjMzIi8+PC9zdmc+)',
+                    backgroundSize: '30px 35px',
+                  }}
                   onChange={(e) => setPayer(e.target.value)}
                   value={payer}
                 >
@@ -551,19 +556,19 @@ export default function Home() {
       </Card>
       {expenses.map((expense, index) => (
         <Card key={index} className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200 mt-4 dark:bg-gray-800/80 dark:border-gray-700">
-          <CardHeader className="flex justify-between items-start">
+          <CardHeader className="flex justify-between items-start flex-row items-center">
             <CardTitle className="text-3xl font-semibold text-center text-foreground">
-              Expense Details of : {expense.type}
+              {expense.type}
             </CardTitle>
-             <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleDeleteExpense(index)}
-                className="h-8 w-8"
-              >
-                <Trash2 className="h-4 w-4" />
-                <span className="sr-only">Delete Expense</span>
-              </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleDeleteExpense(index)}
+              className="h-10 w-10 flex items-center justify-center rounded-full bg-red-500 text-white shadow-lg hover:bg-red-600 focus:outline-none"
+            >
+              <Trash2 className="h-5 w-5" />
+              <span className="sr-only">Delete Expense</span>
+            </Button>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Owed Amounts Display Section */}
