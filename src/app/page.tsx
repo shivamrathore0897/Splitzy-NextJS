@@ -289,18 +289,12 @@ export default function Home() {
         if (!netOwed[owee]) {
           netOwed[owee] = 0;
         }
-
-        // Adjust the net owed amount based on the payer
-        if (expense.payer !== owee) {
-          netOwed[owee] += amount; // Owee receives
+        netOwed[owee] += amount; // Owee receives
+        if (!netOwed[expense.payer]) {
+          netOwed[expense.payer] = 0;
         }
+        netOwed[expense.payer] -= amount; // Payer pays
       });
-
-      // Deduct the total paid amount from the payer's balance
-      if (!netOwed[expense.payer]) {
-        netOwed[expense.payer] = 0;
-      }
-      netOwed[expense.payer] -= expense.amount / expense.participants.length * (expense.participants.length - 1);
     });
 
     return netOwed;
@@ -310,38 +304,38 @@ export default function Home() {
     const netOwed = calculateNetOwedAmounts();
     const simplifiedOwed: { from: string; to: string; amount: number }[] = [];
 
-    // Sort participants based on their net owed amounts (highest owed first)
     const sortedParticipants = Object.entries(netOwed)
       .sort(([, amountA], [, amountB]) => amountB - amountA)
       .map(([name]) => name);
 
-    let balances = { ...netOwed }; // Copy of netOwed to manipulate balances
+    let balances = { ...netOwed };
 
     for (let i = 0; i < sortedParticipants.length; i++) {
-      const debtor = sortedParticipants[i];
-      if (balances[debtor] <= 0) continue; // Skip if debtor has no debt
+      const creditor = sortedParticipants[i];
+      if (balances[creditor] <= 0) continue;
 
       for (let j = i + 1; j < sortedParticipants.length; j++) {
-        const creditor = sortedParticipants[j];
-        if (balances[creditor] >= 0) continue; // Skip if creditor is not owed
+        const debtor = sortedParticipants[j];
+        if (balances[debtor] >= 0) continue;
 
-        const transactionAmount = Math.min(balances[debtor], -balances[creditor]);
+        const transactionAmount = Math.min(balances[creditor], -balances[debtor]);
 
         simplifiedOwed.push({
-          from: creditor,
-          to: debtor,
+          from: debtor,
+          to: creditor,
           amount: transactionAmount,
         });
 
-        balances[debtor] -= transactionAmount;
-        balances[creditor] += transactionAmount;
+        balances[creditor] -= transactionAmount;
+        balances[debtor] += transactionAmount;
 
-        if (balances[debtor] === 0) break; // Debtor's debt is settled
+        if (balances[creditor] === 0) break;
       }
     }
 
     return simplifiedOwed;
   };
+
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-4 bg-gradient-to-br from-green-100 to-teal-50 font-sans">
@@ -663,4 +657,5 @@ export default function Home() {
     </div>
   );
 }
+
 
