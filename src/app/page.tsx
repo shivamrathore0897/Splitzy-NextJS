@@ -81,6 +81,17 @@ export default function Home() {
   const [payerError, setPayerError] = useState<string | null>(null);
   const [currencyError, setCurrencyError] = useState<string | null>(null);
 
+  const currencySymbols: any = {
+    USD: "$",
+    EUR: "€",
+    GBP: "£",
+    INR: "₹",
+    JPY: "¥",
+    CAD: "C$",
+    AUD: "A$",
+  };
+
+
   // Load expenses from storage on component mount
   useEffect(() => {
     const loadExpenses = async () => {
@@ -221,15 +232,7 @@ export default function Home() {
   // Check if calculation is disabled
   const isCalculateDisabled = !billAmount || !payer || !currency;
 
-  const currencySymbols: any = {
-    USD: "$",
-    EUR: "€",
-    GBP: "£",
-    INR: "₹",
-    JPY: "¥",
-    CAD: "C$",
-    AUD: "A$",
-  };
+
 
   const handleAddExpenseType = () => {
     setIsEditingExpenseType(true);
@@ -298,21 +301,17 @@ export default function Home() {
         if (balances[debtor] >= 0) continue;
 
         const transactionAmount = Math.min(balances[creditor], -balances[debtor]);
-
-        // Find the currency associated with the transaction.
-        // In a real app, you might want to reconcile if different expenses
-        // use different currencies between the same parties. For simplicity,
-        // here we'll just take the currency from the first expense.
         const relevantExpense = expenses.find(expense =>
           expense.owedAmounts[debtor] && expense.owedAmounts[creditor]
         );
-        const transactionCurrency = relevantExpense ? relevantExpense.currency : "USD"; // Default to USD if no currency is found
+        // Default to USD if no currency is found
+        const transactionCurrency = relevantExpense ? relevantExpense.currency : "USD"; 
 
         simplifiedOwed.push({
           from: debtor,
           to: creditor,
           amount: transactionAmount,
-          currency: transactionCurrency, // Add currency to transaction
+          currency: transactionCurrency,
         });
 
         balances[creditor] -= transactionAmount;
@@ -546,14 +545,16 @@ export default function Home() {
                 <Label className="text-foreground/50 font-medium">Simplified Owed Amounts:</Label>
                 <ul>
                   {calculateSimplifiedOwedAmounts().map((transaction, index) => {
+                    // Determine the currency symbol based on the transaction's currency
                     const currencySymbol = currencySymbols[transaction.currency] || "$";
                     return (
                       <li key={index} className="flex items-center justify-between py-2 border-b border-gray-200">
                         <div className="flex items-center space-x-2">
-                          <span className="text-foreground">{transaction.to}</span>
-                          <span className="text-foreground/50">owes</span>
                           <span className="text-foreground">{transaction.from}</span>
+                          <span className="text-foreground/50">owes</span>
+                          <span className="text-foreground">{transaction.to}</span>
                         </div>
+                        {/* Display amount with the correct currency symbol */}
                         <span className="text-foreground">{currencySymbol}{transaction.amount.toFixed(2)}</span>
                       </li>
                     );
