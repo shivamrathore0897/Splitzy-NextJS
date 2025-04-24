@@ -291,7 +291,7 @@ export default function Home() {
       .map(([name]) => name);
 
     let balances = { ...netOwed };
-
+    let transactionCurrency = "USD";
     for (let i = 0; i < sortedParticipants.length; i++) {
       const creditor = sortedParticipants[i];
       if (balances[creditor] <= 0) continue;
@@ -305,7 +305,9 @@ export default function Home() {
           expense.owedAmounts[debtor] && expense.owedAmounts[creditor]
         );
         // Default to USD if no currency is found
-        const transactionCurrency = relevantExpense ? relevantExpense.currency : "USD"; 
+        // const transactionCurrency = relevantExpense ? relevantExpense.currency : "USD"; 
+
+        transactionCurrency = relevantExpense?.currency || transactionCurrency;
 
         simplifiedOwed.push({
           from: debtor,
@@ -550,9 +552,9 @@ export default function Home() {
                     return (
                       <li key={index} className="flex items-center justify-between py-2 border-b border-gray-200">
                         <div className="flex items-center space-x-2">
-                          <span className="text-foreground">{transaction.from}</span>
-                          <span className="text-foreground/50">owes</span>
                           <span className="text-foreground">{transaction.to}</span>
+                          <span className="text-foreground/50">owes</span>
+                          <span className="text-foreground">{transaction.from}</span>
                         </div>
                         {/* Display amount with the correct currency symbol */}
                         <span className="text-foreground">{currencySymbol}{transaction.amount.toFixed(2)}</span>
