@@ -81,19 +81,6 @@ export default function Home() {
   const [payerError, setPayerError] = useState<string | null>(null);
   const [currencyError, setCurrencyError] = useState<string | null>(null);
 
-  // // Load expenses from local storage on component mount
-  // useEffect(() => {
-  //   const storedExpenses = localStorage.getItem('expenses');
-  //   if (storedExpenses) {
-  //     setExpenses(JSON.parse(storedExpenses));
-  //   }
-  // }, []);
-
-  // // Save expenses to local storage whenever the expenses state changes
-  // useEffect(() => {
-  //   localStorage.setItem('expenses', JSON.stringify(expenses));
-  // }, [expenses]);
-
   // Load expenses from storage on component mount
   useEffect(() => {
     const loadExpenses = async () => {
@@ -244,8 +231,6 @@ export default function Home() {
     AUD: "A$",
   };
 
-  const currencySymbol = currencySymbols[currency] || "$";
-
   const handleAddExpenseType = () => {
     setIsEditingExpenseType(true);
   };
@@ -257,12 +242,6 @@ export default function Home() {
     setIsEditingExpenseType(false);
     setNewExpenseType("");
   };
-
-  // const handleDeleteExpense = (indexToDelete: number) => {
-  //   const updatedExpenses = expenses.filter((_, index) => index !== indexToDelete);
-  //   setExpenses(updatedExpenses);
-  //   localStorage.setItem('expenses', JSON.stringify(updatedExpenses));
-  // };
 
   const handleDeleteExpense = async (indexToDelete: number) => {
     const updatedExpenses = expenses.filter((_, index) => index !== indexToDelete);
@@ -302,7 +281,7 @@ export default function Home() {
 
   const calculateSimplifiedOwedAmounts = () => {
     const netOwed = calculateNetOwedAmounts();
-    const simplifiedOwed: { from: string; to: string; amount: number }[] = [];
+    const simplifiedOwed: { from: string; to: string; amount: number; currency: string }[] = [];
 
     const sortedParticipants = Object.entries(netOwed)
       .sort(([, amountA], [, amountB]) => amountB - amountA)
@@ -320,10 +299,20 @@ export default function Home() {
 
         const transactionAmount = Math.min(balances[creditor], -balances[debtor]);
 
+        // Find the currency associated with the transaction.
+        // In a real app, you might want to reconcile if different expenses
+        // use different currencies between the same parties. For simplicity,
+        // here we'll just take the currency from the first expense.
+        const relevantExpense = expenses.find(expense =>
+          expense.owedAmounts[debtor] && expense.owedAmounts[creditor]
+        );
+        const transactionCurrency = relevantExpense ? relevantExpense.currency : "USD"; // Default to USD if no currency is found
+
         simplifiedOwed.push({
           from: debtor,
           to: creditor,
           amount: transactionAmount,
+          currency: transactionCurrency, // Add currency to transaction
         });
 
         balances[creditor] -= transactionAmount;
@@ -556,72 +545,76 @@ export default function Home() {
               <section className="mt-6 space-y-2">
                 <Label className="text-foreground/50 font-medium">Simplified Owed Amounts:</Label>
                 <ul>
-                  {calculateSimplifiedOwedAmounts().map((transaction, index) => (
-                    <li key={index} className="flex items-center justify-between py-2 border-b border-gray-200">
-                      <div className="flex items-center space-x-2">
-                        {/* <User className="mr-1 h-4 w-4 text-foreground/50" /> */}
-                        <span className="text-foreground">{transaction.to}</span>
-                        <span className="text-foreground/50">owes</span>
-                        {/* <User className="mr-1 h-4 w-4 text-foreground/50" /> */}
-                        <span className="text-foreground">{transaction.from}</span>
-                      </div>
-                      <span className="text-foreground">{currencySymbol}{transaction.amount.toFixed(2)}</span>
-                    </li>
-                  ))}
+                  {calculateSimplifiedOwedAmounts().map((transaction, index) => {
+                    const currencySymbol = currencySymbols[transaction.currency] || "$";
+                    return (
+                      <li key={index} className="flex items-center justify-between py-2 border-b border-gray-200">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-foreground">{transaction.to}</span>
+                          <span className="text-foreground/50">owes</span>
+                          <span className="text-foreground">{transaction.from}</span>
+                        </div>
+                        <span className="text-foreground">{currencySymbol}{transaction.amount.toFixed(2)}</span>
+                      </li>
+                    );
+                  })}
                 </ul>
               </section>
             </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
-      {expenses.map((expense, index) => (
-        <Card key={index} className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200 mt-4 dark:bg-gray-800/80 dark:border-gray-700">
-          <CardHeader className="flex justify-between items-start flex-row items-center">
-            <CardTitle className="text-3xl font-semibold text-center text-foreground">
-              {expense.type}
-            </CardTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => handleDeleteExpense(index)}
-              className="h-10 w-10 flex items-center justify-center rounded-full bg-red-500 text-white shadow-lg hover:bg-red-600 focus:outline-none"
-            >
-              <Trash2 className="h-5 w-5" />
-              <span className="sr-only">Delete Expense</span>
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Owed Amounts Display Section */}
-            {Object.keys(expense.owedAmounts).length > 0 && (
-              <section className="mt-6 space-y-2">
-                <Label className="text-foreground/50 font-medium">Owed Amounts:</Label>
-                <ul>
-                  {Object.entries(expense.owedAmounts).map(([name, amount]) => (
-                    <li key={name} className="flex items-center justify-between py-2 border-b border-gray-200">
-                      <div className="flex items-center space-x-2">
-                        {expense.payer === name ? (
-                          <>
-                            <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
-                            <span className="font-semibold text-foreground">{name} (Payer)</span>
-                          </>
-                        ) : (
-                          <>
-                            <User className="mr-1 h-4 w-4 text-foreground" />
-                            <span className="text-foreground">{name}</span>
-                          </>
-                        )}
-                      </div>
-                      <span className="text-foreground">{currencySymbols[expense.currency]}{amount.toFixed(2)}</span>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
-            <Label className="text-foreground/50 font-medium">Total Amount Paid : </Label>
-            <span className="text-foreground">{currencySymbols[expense.currency]}{expense.amount.toFixed(2)}</span>
-          </CardContent>
-        </Card>
-      ))}
+      {expenses.map((expense, index) => {
+        const currencySymbol = currencySymbols[expense.currency] || "$";
+        return (
+          <Card key={index} className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200 mt-4 dark:bg-gray-800/80 dark:border-gray-700">
+            <CardHeader className="flex justify-between items-start flex-row items-center">
+              <CardTitle className="text-3xl font-semibold text-center text-foreground">
+                {expense.type}
+              </CardTitle>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleDeleteExpense(index)}
+                className="h-10 w-10 flex items-center justify-center rounded-full bg-red-500 text-white shadow-lg hover:bg-red-600 focus:outline-none"
+              >
+                <Trash2 className="h-5 w-5" />
+                <span className="sr-only">Delete Expense</span>
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Owed Amounts Display Section */}
+              {Object.keys(expense.owedAmounts).length > 0 && (
+                <section className="mt-6 space-y-2">
+                  <Label className="text-foreground/50 font-medium">Owed Amounts:</Label>
+                  <ul>
+                    {Object.entries(expense.owedAmounts).map(([name, amount]) => (
+                      <li key={name} className="flex items-center justify-between py-2 border-b border-gray-200">
+                        <div className="flex items-center space-x-2">
+                          {expense.payer === name ? (
+                            <>
+                              <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
+                              <span className="font-semibold text-foreground">{name} (Payer)</span>
+                            </>
+                          ) : (
+                            <>
+                              <User className="mr-1 h-4 w-4 text-foreground" />
+                              <span className="text-foreground">{name}</span>
+                            </>
+                          )}
+                        </div>
+                        <span className="text-foreground">{currencySymbol}{amount.toFixed(2)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+              <Label className="text-foreground/50 font-medium">Total Amount Paid : </Label>
+              <span className="text-foreground">{currencySymbol}{expense.amount.toFixed(2)}</span>
+            </CardContent>
+          </Card>
+        );
+      })}
 
       <Card className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200 mt-4 dark:bg-gray-800/80 dark:border-gray-700">
         <CardHeader>
@@ -633,17 +626,24 @@ export default function Home() {
           {/* Owed Amounts Display Section */}
           {Object.keys(totalOwedAmounts()).length > 0 && (
             <section className="mt-6 space-y-2">
-              {/* <Label className="text-foreground/50 font-medium">Total Owed Amounts:</Label> */}
               <ul>
-                {Object.entries(totalOwedAmounts()).map(([name, amount]) => (
-                  <li key={name} className="flex items-center justify-between py-2 border-b border-gray-200">
-                    <div className="flex items-center space-x-2">
-                      <User className="mr-1 h-4 w-4 text-foreground" />
-                      <span className="text-foreground">{name}</span>
-                    </div>
-                    <span className="text-foreground">{currencySymbol}{amount.toFixed(2)}</span>
-                  </li>
-                ))}
+                {Object.entries(totalOwedAmounts()).map(([name, amount]) => {
+                  // Determine the currency for this person's owed amount.
+                  // It's more robust to fetch it from expenses than rely on a default.
+                  const relevantExpense = expenses.find(expense => name in expense.owedAmounts);
+                  const currency = relevantExpense ? relevantExpense.currency : "USD"; // Fallback to USD if no currency found
+                  const currencySymbol = currencySymbols[currency] || "$"; // Get the symbol for the currency
+
+                  return (
+                    <li key={name} className="flex items-center justify-between py-2 border-b border-gray-200">
+                      <div className="flex items-center space-x-2">
+                        <User className="mr-1 h-4 w-4 text-foreground" />
+                        <span className="text-foreground">{name}</span>
+                      </div>
+                      <span className="text-foreground">{currencySymbol}{amount.toFixed(2)}</span>
+                    </li>
+                  );
+                })}
               </ul>
             </section>
           )}
@@ -657,5 +657,3 @@ export default function Home() {
     </div>
   );
 }
-
-
