@@ -61,7 +61,7 @@ export default function Home() {
   const [individualOwedAmounts, setIndividualOwedAmounts] = useState<{ [payer: string]: { [owee: string]: number } }>({});
 
   const [payer, setPayer] = useState<string>("");
-  const [currency, setCurrency] = useState<string>("INR");
+  const [currency, setCurrency] = useState<string>("USD");
   const [isCalculating, setIsCalculating] = useState(false);
   const [expenseType, setExpenseType] = useState<string>("Food/Meal"); // Default expense type
   const [expenseTypes, setExpenseTypes] = useState<string[]>(["Food/Meal", "Shopping", "Travel"]); // Initial expense types
@@ -76,6 +76,20 @@ export default function Home() {
   const [participantsError, setParticipantsError] = useState<string | null>(null);
   const [payerError, setPayerError] = useState<string | null>(null);
   const [currencyError, setCurrencyError] = useState<string | null>(null);
+
+  // Load expenses from local storage on component mount
+  useEffect(() => {
+    const storedExpenses = localStorage.getItem('expenses');
+    if (storedExpenses) {
+      setExpenses(JSON.parse(storedExpenses));
+    }
+  }, []);
+
+  // Save expenses to local storage whenever the expenses state changes
+  useEffect(() => {
+    localStorage.setItem('expenses', JSON.stringify(expenses));
+  }, [expenses]);
+
 
   // Validation function to check if the form is valid
   const isFormValid = () => {
@@ -200,16 +214,16 @@ export default function Home() {
   const isCalculateDisabled = !billAmount || !payer || !currency;
 
   const currencySymbols: any = {
-    INR: "₹",
     USD: "$",
     EUR: "€",
     GBP: "£",
+    INR: "₹",
     JPY: "¥",
     CAD: "C$",
     AUD: "A$",
   };
 
-  const currencySymbol = currencySymbols[currency] || "₹";
+  const currencySymbol = currencySymbols[currency] || "$";
 
   const handleAddExpenseType = () => {
     setIsEditingExpenseType(true);
