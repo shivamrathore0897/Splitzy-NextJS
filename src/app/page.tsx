@@ -29,6 +29,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from 'next-themes';
 import { useEffect as useReactEffect } from 'react';
+import { storage } from '../utils/storage'; // adjust the path as needed
+
+
 
 // Component for displaying a participant item in the list
 const ParticipantItem = ({ index, participant, isPayer }: any) => (
@@ -78,17 +81,34 @@ export default function Home() {
   const [payerError, setPayerError] = useState<string | null>(null);
   const [currencyError, setCurrencyError] = useState<string | null>(null);
 
-  // Load expenses from local storage on component mount
+  // // Load expenses from local storage on component mount
+  // useEffect(() => {
+  //   const storedExpenses = localStorage.getItem('expenses');
+  //   if (storedExpenses) {
+  //     setExpenses(JSON.parse(storedExpenses));
+  //   }
+  // }, []);
+
+  // // Save expenses to local storage whenever the expenses state changes
+  // useEffect(() => {
+  //   localStorage.setItem('expenses', JSON.stringify(expenses));
+  // }, [expenses]);
+
+  // Load expenses from storage on component mount
   useEffect(() => {
-    const storedExpenses = localStorage.getItem('expenses');
-    if (storedExpenses) {
-      setExpenses(JSON.parse(storedExpenses));
-    }
+    const loadExpenses = async () => {
+      const storedExpenses = await storage.get('expenses');
+      if (storedExpenses) {
+        setExpenses(storedExpenses as any[]);
+      }
+    };
+
+    loadExpenses();
   }, []);
 
-  // Save expenses to local storage whenever the expenses state changes
+  // Save expenses to storage whenever the expenses state changes
   useEffect(() => {
-    localStorage.setItem('expenses', JSON.stringify(expenses));
+    storage.set('expenses', expenses);
   }, [expenses]);
 
 
@@ -238,10 +258,16 @@ export default function Home() {
     setNewExpenseType("");
   };
 
-  const handleDeleteExpense = (indexToDelete: number) => {
+  // const handleDeleteExpense = (indexToDelete: number) => {
+  //   const updatedExpenses = expenses.filter((_, index) => index !== indexToDelete);
+  //   setExpenses(updatedExpenses);
+  //   localStorage.setItem('expenses', JSON.stringify(updatedExpenses));
+  // };
+
+  const handleDeleteExpense = async (indexToDelete: number) => {
     const updatedExpenses = expenses.filter((_, index) => index !== indexToDelete);
     setExpenses(updatedExpenses);
-    localStorage.setItem('expenses', JSON.stringify(updatedExpenses));
+    await storage.set('expenses', updatedExpenses);
   };
 
 
@@ -540,10 +566,10 @@ export default function Home() {
                     <li key={index} className="flex items-center justify-between py-2 border-b border-gray-200">
                       <div className="flex items-center space-x-2">
                         {/* <User className="mr-1 h-4 w-4 text-foreground/50" /> */}
-                        <span className="text-foreground">{transaction.from}</span>
+                        <span className="text-foreground">{transaction.to}</span>
                         <span className="text-foreground/50">owes</span>
                         {/* <User className="mr-1 h-4 w-4 text-foreground/50" /> */}
-                        <span className="text-foreground">{transaction.to}</span>
+                        <span className="text-foreground">{transaction.from}</span>
                       </div>
                       <span className="text-foreground">{currencySymbol}{transaction.amount.toFixed(2)}</span>
                     </li>
