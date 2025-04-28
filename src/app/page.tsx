@@ -65,7 +65,7 @@ export default function Home() {
   const [individualOwedAmounts, setIndividualOwedAmounts] = useState<{ [payer: string]: { [owee: string]: number } }>({});
 
   const [payer, setPayer] = useState<string>("");
-  const [currency, setCurrency] = useState<string>("USD");
+  const [currency, setCurrency] = useState<string>("INR");
   const [isCalculating, setIsCalculating] = useState(false);
   const [expenseType, setExpenseType] = useState<string>("Food/Meal"); // Default expense type
   const [expenseTypes, setExpenseTypes] = useState<string[]>(["Food/Meal", "Shopping", "Travel"]); // Initial expense types
@@ -302,7 +302,7 @@ export default function Home() {
 
         const transactionAmount = Math.min(balances[creditor], -balances[debtor]);
         const relevantExpense = expenses.find(expense =>
-          expense.owedAmounts[debtor] && expense.owedAmounts[creditor]
+          expense.owedAmounts[debtor] != null && expense.owedAmounts[creditor] != null
         );
         // Default to USD if no currency is found
         // const transactionCurrency = relevantExpense ? relevantExpense.currency : "USD"; 
