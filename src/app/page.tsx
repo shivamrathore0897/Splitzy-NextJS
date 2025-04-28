@@ -98,6 +98,14 @@ export default function Home() {
       const storedExpenses = await storage.get('expenses');
       if (storedExpenses) {
         setExpenses(storedExpenses as any[]);
+        // Extract participants from stored expenses
+        const allParticipants = new Set<string>();
+        storedExpenses.forEach((expense: any) => {
+          expense.participants.forEach((participant: string) => {
+            allParticipants.add(participant);
+          });
+        });
+        setParticipants(Array.from(allParticipants));
       }
     };
 
@@ -660,3 +668,4 @@ export default function Home() {
     </div>
   );
 }
+
