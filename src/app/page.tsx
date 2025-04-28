@@ -216,14 +216,14 @@ export default function Home() {
 
         return updatedIndividualOwedAmounts;
       });
-      setExpenses([...expenses, {
+      setExpenses([ {
         type: expenseType,
         amount: billAmount,
         participants: participants,
         payer: payer,
         currency: currency,
         owedAmounts: newOwedAmounts,
-      }])
+      },...expenses, ])
     } finally {
       setIsCalculating(false);
     }
@@ -567,7 +567,7 @@ export default function Home() {
           </Tabs>
         </CardContent>
       </Card>
-      {expenses.map((expense, index) => {
+      {expenses.slice().reverse().map((expense, index) => {
         const currencySymbol = currencySymbols[expense.currency] || "$";
         return (
           <Card key={index} className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200 mt-4 dark:bg-gray-800/80 dark:border-gray-700">
