@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import {
   User,
@@ -19,6 +19,8 @@ import {
   Sun,
   Moon,
   Trash2,
+  UserPlus,
+  Loader2
 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { cn } from "@/lib/utils";
@@ -34,15 +36,28 @@ import { storage } from '../utils/storage'; // adjust the path as needed
 
 
 // Component for displaying a participant item in the list
-const ParticipantItem = ({ index, participant, isPayer }: any) => (
-  <li key={index} className="flex items-center space-x-2 py-1">
+const ParticipantItem = ({ index, participant, isPayer, participantsLength }: any) => (
+  <li
+    key={index}
+    className={`flex items-center space-x-2 py-1 px-1 ${isPayer ? "bg-green-500/10 border border-green-500" : "bg-red-500/10"
+      } ${index === 0 ? "rounded-t-md" : ""
+      } ${index === participantsLength - 1 ? "rounded-b-md" : ""
+      }`}
+  >
     {isPayer ? (
       <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
     ) : (
       <User className="mr-1 h-4 w-4 text-foreground" />
     )}
-    <span className="text-foreground/50">{index + 1}. {participant}</span>
+    <span
+      className={`${isPayer ? "text-green-500" : "text-red-500"
+        }`}
+    >
+      {/* {index + 1}. {participant} */}
+      {participant}
+    </span>
   </li>
+
 );
 
 
@@ -224,14 +239,14 @@ export default function Home() {
 
         return updatedIndividualOwedAmounts;
       });
-      setExpenses([ {
+      setExpenses([{
         type: expenseType,
         amount: billAmount,
         participants: participants,
         payer: payer,
         currency: currency,
         owedAmounts: newOwedAmounts,
-      },...expenses, ])
+      }, ...expenses,])
     } finally {
       setIsCalculating(false);
     }
@@ -335,337 +350,635 @@ export default function Home() {
   };
 
 
+
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-4 bg-gradient-to-br from-green-100 to-teal-50 font-sans">
-      <Card className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200 dark:bg-gray-800/80 dark:border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-3xl font-semibold text-center text-foreground">
-            Splitzy
-          </CardTitle>
-          <Button variant="outline" size="icon" className="absolute top-4 right-4 z-10 inline-flex items-center justify-center rounded-full p-2 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
-            {/* Conditionally render the icon based on the current theme */}
-            {theme === 'light' ? (
-              <Moon className="h-[1.2rem] w-[1.2rem] text-gray-900 dark:text-gray-100 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            ) : (
-              <Sun color="white" className="h-[1.2rem] w-[1.2rem] text-gray-900 light:text-gray-100 rotate-0 scale-100 transition-all light:-rotate-90 light:scale-0" />
-            )}
-            <span className="sr-only">Toggle theme</span>
-          </Button>
-        </CardHeader>
-        <CardContent className="space-y-6">
-
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList>
-              <TabsTrigger value="expenseDetails">Expense Details</TabsTrigger>
-              <TabsTrigger value="owedBreakdown">Owed Breakdown</TabsTrigger>
-            </TabsList>
-            <TabsContent value="expenseDetails" className="space-y-6">
-
-              {/* Expense Details Section */}
-              <section className="space-y-2">
-                <Label htmlFor="expenseType" className="text-foreground/50 font-medium">
-                  Expense Details
-                </Label>
-                <div className="flex items-center space-x-2 space-y-1">
-                  <Select onValueChange={setExpenseType} value={expenseType}>
-                    <SelectTrigger className="w-48 rounded-md">
-                      <SelectValue placeholder={expenseType} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {expenseTypes.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handleAddExpenseType}
-                    className="h-9 w-9"
-                  >
-                    <Edit className="h-4 w-4" />
-                    <span className="sr-only">Edit Expense Types</span>
-                  </Button>
-                </div>
-                {isEditingExpenseType && (
-                  <div className="flex flex-col space-y-2 mt-2">
-                    <Input
-                      type="text"
-                      placeholder="Enter new expense type"
-                      className="rounded-md text-foreground/50 shadow-sm"
-                      value={newExpenseType}
-                      onChange={(e) => setNewExpenseType(e.target.value)}
-                    />
-                    <Button onClick={handleSaveExpenseType} className="bg-teal-500 text-white hover:bg-teal-600 rounded-md shadow-md">
-                      Save
-                    </Button>
-                  </div>
-                )}
-              </section>
-
-              {/* Bill Amount Section */}
-              <section className="space-y-2">
-                <Label htmlFor="billAmount" className="text-foreground/50 font-medium">
-                  Bill Amount
-                </Label>
-                <div className="flex ">
-
-                  {/* Currency Selection Section */}
-
-                  <Select onValueChange={setCurrency} value={currency}>
-                    <SelectTrigger className="w-[80px] rounded-r-none">
-                      {/* Manually render selected currency symbol */}
-                      <span className="pl-2">{currencySymbols[currency]}</span>
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      <SelectItem value="USD">USD - $</SelectItem>
-                      <SelectItem value="EUR">EUR - €</SelectItem>
-                      <SelectItem value="GBP">GBP - £</SelectItem>
-                      <SelectItem value="INR">INR - ₹</SelectItem>
-                      <SelectItem value="JPY">JPY - ¥</SelectItem>
-                      <SelectItem value="CAD">CAD - C$</SelectItem>
-                      <SelectItem value="AUD">AUD - A$</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Input
-                    id="billAmount"
-                    type="number"
-                    placeholder="Enter bill amount"
-                    className="rounded-l-none text-foreground shadow-sm"
-                    value={billAmount === null ? "" : billAmount.toString()}
-                    onChange={(e) => {
-                      const value = parseFloat(e.target.value);
-                      setBillAmount(isNaN(value) ? null : value);
-                    }}
-                  />
-                </div>
-                {billAmountError && (
-                  <Alert variant="destructive">
-                    <AlertTitle>Error</AlertTitle>
-                    <AlertDescription>{billAmountError}</AlertDescription>
-                  </Alert>
-                )}
-              </section>
-
-              {/* Participants Section */}
-              <section className="space-y-2">
-                <Label htmlFor="participantName" className="text-foreground/50 font-medium">
-                  Participants
-                </Label>
-                <div className="flex space-x-2">
-                  <Input
-                    id="participantName"
-                    type="text"
-                    placeholder="Enter participant name"
-                    className="rounded-md text-foreground shadow-sm"
-                    value={participantName}
-                    onChange={(e) => setParticipantName(e.target.value)}
-                  />
-                  <Button onClick={handleAddParticipant} className="bg-teal-500 text-white hover:bg-teal-600 rounded-md shadow-md">
-                    <User className="mr-2 h-4 w-4" />
-                    Add
-                  </Button>
-                </div>
-                {participantNameError && (
-                  <Alert variant="destructive" className="animate-shake">
-                    <AlertTitle>
-                      <AlertTriangle className="h-4 w-4 mr-2" />
-                      Error
-                    </AlertTitle>
-                    <AlertDescription>{participantNameError}</AlertDescription>
-                  </Alert>
-                )}
-                {participants.length > 0 && (
-                  <div className="mt-2">
-                    <Label className="text-foreground/50 font-medium">List of Participants:</Label>
-                    <ul>
-                      {participants.map((participant, index) => (
-                        <ParticipantItem
-                          key={index}
-                          index={index}
-                          participant={participant}
-                          isPayer={payer === participant}
-                        />
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {participantsError && (
-                  <Alert variant="destructive">
-                    <AlertTitle>
-                      <AlertTriangle className="h-4 w-4 mr-2" />
-                      Error
-                    </AlertTitle>
-                    <AlertDescription>{participantsError}</AlertDescription>
-                  </Alert>
-                )}
-              </section>
-
-              {/* Payer Selection Section */}
-              <section className="space-y-2">
-                <Label className="text-foreground/50 font-medium">Who Paid?</Label>
-                <select
-                  className="h-10 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-foreground/50 dark:text-gray-300 shadow-sm appearance-none bg-no-repeat bg-right"
-                  style={{
-                    backgroundImage:
-                      'url(data:image/svg+xml;base64,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0Ljk1IDEwIj48ZGVmcz48c3R5bGU+LmNscy0xe2ZpbGw6I2ZmZjt9LmNscy0ye2ZpbGw6IzQ0NDt9PC9zdHlsZT48L2RlZnM+PHRpdGxlPmFycm93czwvdGl0bGU+PHJlY3QgY2xhc3M9ImNscy0xIiB3aWR0aD0iNC45NSIgaGVpZ2h0PSIxMCIvPjxwb2x5Z29uIGNsYXNzPSJjbHMtMiIgcG9pbnRzPSIxLjQxIDQuNjcgMi40OCAzLjE4IDMuNTQgNC42NyAxLjQxIDQuNjciLz48cG9seWdvbiBjbGFzcz0iY2xzLTIiIHBvaW50cz0iMy41NCA1LjMzIDIuNDggNi44MiAxLjQxIDUuMzMgMy41NCA1LjMzIi8+PC9zdmc+)',
-                    backgroundSize: '30px 35px',
-                  }}
-                  onChange={(e) => setPayer(e.target.value)}
-                  value={payer}
+    <div>
+      <div className="flex flex-col min-h-screen bg-gradient-to-br from-green-50 to-teal-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="container mx-auto px-4 py-8 flex-1">
+          <Card className="max-w-3xl mx-auto shadow-lg">
+            <CardHeader className="relative">
+              <div className="flex justify-between items-center">
+                <CardHeader className="p-0">
+                  <CardTitle className="text-3xl font-bold text-foreground">
+                    Splitzy
+                  </CardTitle>
+                  <CardDescription className="text-foreground/70"> Split expenses with friends</CardDescription>
+                </CardHeader>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                  className="rounded-full"
                 >
-                  <option value="">Select Payer</option>
-                  {participants.map((participant, index) => (
-                    <option key={index} value={participant}>
-                      {participant}
-                    </option>
-                  ))}
-                </select>
-                {payerError && (
-                  <Alert variant="destructive">
-                    <AlertTitle>
-                      <AlertTriangle className="h-4 w-4 mr-2" />
-                      Error
-                    </AlertTitle>
-                    <AlertDescription>{payerError}</AlertDescription>
-                  </Alert>
-                )}
-              </section>
-
-
-              {/* Calculate Split Button */}
-              <Button
-                className={cn(
-                  "w-full bg-teal-500 text-white hover:bg-teal-600 rounded-md shadow-md transition-colors duration-300",
-                  isCalculateDisabled && "opacity-50 cursor-not-allowed"
-                )}
-                onClick={handleCalculateSplit}
-                disabled={isCalculating || isCalculateDisabled}
-              >
-                <Wallet className="mr-2 h-4 w-4" />
-                Calculate Split
-              </Button>
-            </TabsContent>
-            <TabsContent value="owedBreakdown" className="space-y-6">
-              <section className="mt-6 space-y-2">
-                <Label className="text-foreground/50 font-medium">Simplified Owed Amounts:</Label>
-                <ul>
-                  {calculateSimplifiedOwedAmounts().map((transaction, index) => {
-                    // Determine the currency symbol based on the transaction's currency
-                    const currencySymbol = currencySymbols[transaction.currency] || "$";
-                    return (
-                      <li key={index} className="flex items-center justify-between py-2 border-b border-gray-200">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-foreground">{transaction.to}</span>
-                          <span className="text-foreground/50">owes</span>
-                          <span className="text-foreground">{transaction.from}</span>
-                        </div>
-                        {/* Display amount with the correct currency symbol */}
-                        <span className="text-foreground">{currencySymbol}{transaction.amount.toFixed(2)}</span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </section>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-      {expenses.slice().reverse().map((expense, index) => {
-        const currencySymbol = currencySymbols[expense.currency] || "$";
-        return (
-          <Card key={index} className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200 mt-4 dark:bg-gray-800/80 dark:border-gray-700">
-            <CardHeader className="flex justify-between items-start flex-row items-center">
-              <CardTitle className="text-3xl font-semibold text-center text-foreground">
-                {expense.type}
-              </CardTitle>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleDeleteExpense(index)}
-                className="h-10 w-10 flex items-center justify-center rounded-full bg-red-500 text-white shadow-lg hover:bg-red-600 focus:outline-none"
-              >
-                <Trash2 className="h-5 w-5" />
-                <span className="sr-only">Delete Expense</span>
-              </Button>
+                  {theme === 'light' ? (
+                    <Moon className="h-5 w-5" />
+                  ) : (
+                    <Sun className="h-5 w-5" />
+                  )}
+                  <span className="sr-only">Toggle theme</span>
+                </Button>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Owed Amounts Display Section */}
-              {Object.keys(expense.owedAmounts).length > 0 && (
-                <section className="mt-6 space-y-2">
-                  <Label className="text-foreground/50 font-medium">Owed Amounts:</Label>
-                  <ul>
-                    {Object.entries(expense.owedAmounts).map(([name, amount]) => (
-                      <li key={name} className="flex items-center justify-between py-2 border-b border-gray-200">
-                        <div className="flex items-center space-x-2">
-                          {expense.payer === name ? (
-                            <>
-                              <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
-                              <span className="font-semibold text-foreground">{name} (Payer)</span>
-                            </>
-                          ) : (
-                            <>
-                              <User className="mr-1 h-4 w-4 text-foreground" />
-                              <span className="text-foreground">{name}</span>
-                            </>
-                          )}
+
+            <CardContent>
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid grid-cols-2 w-full mb-6">
+                  <TabsTrigger value="expenseDetails">Expense Details</TabsTrigger>
+                  <TabsTrigger value="owedBreakdown">Owed Breakdown</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="expenseDetails" className="space-y-6">
+                  <div className="grid gap-6 md:grid-cols-2">
+                    {/* Expense Type Section */}
+                    <div className="space-y-2">
+                      <Label className="font-medium">Expense Type</Label>
+                      <div className="flex gap-2">
+                        <Select onValueChange={setExpenseType} value={expenseType}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {expenseTypes.map((type) => (
+                              <SelectItem key={type} value={type}>{type}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={handleAddExpenseType}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      {isEditingExpenseType && (
+                        <div className="space-y-2">
+                          <Input
+                            placeholder="New expense type"
+                            value={newExpenseType}
+                            onChange={(e) => setNewExpenseType(e.target.value)}
+                          />
+                          <Button onClick={handleSaveExpenseType} className="w-full">
+                            Save
+                          </Button>
                         </div>
-                        <span className="text-foreground">{currencySymbol}{amount.toFixed(2)}</span>
-                      </li>
+                      )}
+                    </div>
+
+                    {/* Bill Amount Section */}
+                    <div className="space-y-2">
+                      <Label className="font-medium">Bill Amount</Label>
+                      <div className="flex">
+                        <Select onValueChange={setCurrency} value={currency}>
+                          <SelectTrigger className="w-[90px] rounded-r-none">
+                            <span>{currencySymbols[currency]}</span>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(currencySymbols).map(([code, symbol]) => (
+                              <SelectItem key={code} value={code}>
+                                {code} - {symbol}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Input
+                          type="number"
+                          placeholder="Amount"
+                          className="rounded-l-none"
+                          value={billAmount === null ? "" : billAmount.toString()}
+                          onChange={(e) => {
+                            const value = parseFloat(e.target.value);
+                            setBillAmount(isNaN(value) ? null : value);
+                          }}
+                        />
+                      </div>
+                      {billAmountError && (
+                        <Alert variant="destructive" className="mt-2">
+                          <AlertTriangle className="h-4 w-4" />
+                          <AlertDescription>{billAmountError}</AlertDescription>
+                        </Alert>
+                      )}
+                    </div>
+
+                    {/* Participants Section */}
+                    <div className="space-y-2">
+                      <Label className="font-medium">Participants</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Add participant"
+                          value={participantName}
+                          onChange={(e) => setParticipantName(e.target.value)}
+                        />
+                        <Button onClick={handleAddParticipant}>
+                          <UserPlus className="mr-2 h-4 w-4" />
+                          Add
+                        </Button>
+                      </div>
+                      {participantNameError && (
+                        <Alert variant="destructive" className="mt-2">
+                          <AlertTriangle className="h-4 w-4" />
+                          <AlertDescription>{participantNameError}</AlertDescription>
+                        </Alert>
+                      )}
+                    </div>
+
+                    {/* Payer Section */}
+                    <div className="space-y-2">
+                      <Label className="font-medium">Who Paid?</Label>
+                      <Select onValueChange={setPayer} value={payer}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select payer" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {participants.map((participant) => (
+                            <SelectItem key={participant} value={participant}>
+                              {participant}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {payerError && (
+                        <Alert variant="destructive" className="mt-2">
+                          <AlertTriangle className="h-4 w-4" />
+                          <AlertDescription>{payerError}</AlertDescription>
+                        </Alert>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Participants List */}
+                  {participants.length > 0 && (
+                    <div className="space-y-2">
+                      <Label className="font-medium">Participants List</Label>
+                      <ul className="border rounded-lg">
+                        {participants.map((participant, index) => (
+                          <ParticipantItem
+                            key={index}
+                            index={index}
+                            participant={participant}
+                            isPayer={payer === participant}
+                            participantsLength={participants.length}
+                          />
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Calculate Button */}
+                  <Button
+                    className="w-full py-6 text-lg mt-4"
+                    onClick={handleCalculateSplit}
+                    disabled={isCalculating || isCalculateDisabled}
+                  >
+                    {isCalculating ? (
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    ) : (
+                      <Wallet className="mr-2 h-5 w-5" />
+                    )}
+                    Calculate Split
+                  </Button>
+
+                  {/* Expenses List */}
+                  <div className="space-y-4 mt-6">
+                    <h3 className="text-lg font-semibold">Recent Expenses</h3>
+                    {expenses.map((expense, index) => (
+                      <Card key={index} className="mb-4 hover:shadow-md transition-shadow">
+                        <CardHeader className="flex flex-row justify-between items-center p-4">
+                          <div>
+                            <CardTitle>{expense.type}</CardTitle>
+                            <CardContent className="text-sm text-muted-foreground p-0">
+                              Paid by {expense.payer}
+                            </CardContent>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteExpense(index)}
+                            className="text-red-500 hover:bg-red-500/10"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </CardHeader>
+                        <CardContent className="p-4 pt-0">
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Total:</span>
+                              <span className="font-bold">
+                                {currencySymbols[expense.currency] || "$"}{expense.amount.toFixed(2)}
+                              </span>
+                            </div>
+
+                            <div className="border-t pt-3">
+                              <h4 className="text-sm font-medium mb-2">Owed amounts:</h4>
+                              <ul className="space-y-2">
+                                {Object.entries(expense.owedAmounts).map(([name, amount]) => (
+                                  <li key={name} className="flex justify-between text-sm">
+                                    <span className="flex items-center gap-1">
+                                      {expense.payer === name ? (
+                                        <CheckCircle className="h-3 w-3 text-green-500" />
+                                      ) : (
+                                        <User className="h-3 w-3" />
+                                      )}
+                                      {name}
+                                    </span>
+                                    <span>
+                                      {currencySymbols[expense.currency] || "$"}{amount.toFixed(2)}
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
                     ))}
-                  </ul>
-                </section>
-              )}
-              <Label className="text-foreground/50 font-medium">Total Amount Paid : </Label>
-              <span className="text-foreground">{currencySymbol}{expense.amount.toFixed(2)}</span>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="owedBreakdown" className="space-y-6">
+                  <div className="space-y-6">
+                    {/* Simplified Transactions */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Simplified Transactions</CardTitle>
+                        <CardDescription className="text-foreground/70">
+                          Who needs to pay whom
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-2">
+                          {calculateSimplifiedOwedAmounts().map((transaction, i) => (
+                            <li key={i} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                              <span>
+                                <span className="font-medium">{transaction.to}</span> owes{' '}
+                                <span className="font-medium">{transaction.from}</span>
+                              </span>
+                              <span className="font-bold">
+                                {currencySymbols[transaction.currency] || "$"}{transaction.amount.toFixed(2)}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+
+                    {/* Total Balances */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Total Balances</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-2">
+                          {Object.entries(totalOwedAmounts()).map(([name, amount]) => {
+                            const currency = expenses.find(e => name in e.owedAmounts)?.currency || "USD";
+                            return (
+                              <li
+                                key={name}
+                                className={`flex justify-between items-center p-3 rounded-lg ${amount < 0 ? 'bg-red-500/10' : 'bg-green-500/10'
+                                  }`}
+                              >
+                                <span className="flex items-center gap-2">
+                                  <User className="h-4 w-4" />
+                                  <span className="font-medium">{name}</span>
+                                </span>
+                                <span className={`font-bold ${amount < 0 ? 'text-red-500' : 'text-green-500'
+                                  }`}>
+                                  {amount < 0 ? '-' : '+'}
+                                  {currencySymbols[currency] || "$"}{Math.abs(amount).toFixed(2)}
+                                </span>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
-        );
-      })}
+        </div>
 
-      <Card className="w-full max-w-md space-y-6 p-6 rounded-xl shadow-md bg-white/80 backdrop-blur-sm border border-gray-200 mt-4 dark:bg-gray-800/80 dark:border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-3xl font-semibold text-center text-foreground">
-            Total Owed Amounts:
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Owed Amounts Display Section */}
-          {Object.keys(totalOwedAmounts()).length > 0 && (
-            <section className="mt-6 space-y-2">
-              <ul>
-                {Object.entries(totalOwedAmounts()).map(([name, amount]) => {
-                  // Determine the currency for this person's owed amount.
-                  // It's more robust to fetch it from expenses than rely on a default.
-                  const relevantExpense = expenses.find(expense => name in expense.owedAmounts);
-                  const currency = relevantExpense ? relevantExpense.currency : "USD"; // Fallback to USD if no currency found
-                  const currencySymbol = currencySymbols[currency] || "$"; // Get the symbol for the currency
-
-                  return (
-                    <li key={name} className="flex items-center justify-between py-2 border-b border-gray-200">
-                      <div className="flex items-center space-x-2">
-                        <User className="mr-1 h-4 w-4 text-foreground" />
-                        <span className="text-foreground">{name}</span>
-                      </div>
-                      <span className="text-foreground">{currencySymbol}{amount.toFixed(2)}</span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
-          )}
-        </CardContent>
-      </Card>
-      <footer className="mt-8 text-center text-gray-500">
-        <p>
+        <footer className="py-4 text-center text-sm text-muted-foreground">
           Made with ❤️ just for you
-        </p>
-      </footer>
+        </footer>
+      </div>
+
+      {/* code 2 */}
+      <div className="flex flex-col items-center justify-center min-h-screen py-8 bg-gradient-to-br from-green-50 to-teal-100 dark:from-gray-800 dark:to-gray-900 font-sans px-4">
+        <div className="w-full max-w-2xl"> {/* Increased max width */}
+          <Card className="w-full space-y-6 p-6 rounded-xl shadow-lg bg-white/90 backdrop-blur-sm border border-gray-200 dark:bg-gray-800/90 dark:border-gray-700">
+            {/* Header with theme toggle */}
+            <div className="flex justify-between items-center">
+              <CardHeader className="p-0">
+                <CardTitle className="text-3xl font-bold text-foreground">
+                  Splitzy
+                </CardTitle>
+                <CardDescription className="text-foreground/70"> Split expenses with friends</CardDescription>
+              </CardHeader>
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-full h-10 w-10"
+                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+              >
+                {theme === 'light' ? (
+                  <Moon className="h-5 w-5" />
+                ) : (
+                  <Sun className="h-5 w-5" />
+                )}
+                <span className="sr-only">Toggle theme</span>
+              </Button>
+            </div>
+
+            <CardContent className="space-y-6 p-0">
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="grid grid-cols-2 w-full">
+                  <TabsTrigger value="expenseDetails">Expense Details</TabsTrigger>
+                  <TabsTrigger value="owedBreakdown">Owed Breakdown</TabsTrigger>
+                </TabsList>
+
+                {/* Expense Details Tab */}
+                <TabsContent value="expenseDetails" className="space-y-6 mt-6">
+                  <div className="grid gap-6 md:grid-cols-2"> {/* Two-column layout for form */}
+                    {/* Expense Type Section */}
+                    <section className="space-y-2">
+                      <Label className="text-foreground/80 font-medium">
+                        Expense Details
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        <Select onValueChange={setExpenseType} value={expenseType}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {expenseTypes.map((type) => (
+                              <SelectItem key={type} value={type}>{type}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={handleAddExpenseType}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      {isEditingExpenseType && (
+                        <div className="flex flex-col space-y-2">
+                          <Input
+                            placeholder="New expense type"
+                            value={newExpenseType}
+                            onChange={(e) => setNewExpenseType(e.target.value)}
+                          />
+                          <Button onClick={handleSaveExpenseType}>
+                            Save
+                          </Button>
+                        </div>
+                      )}
+                    </section>
+
+                    {/* Bill Amount Section */}
+                    <section className="space-y-2">
+                      <Label className="text-foreground/80 font-medium">
+                        Bill Amount
+                      </Label>
+                      <div className="flex">
+                        <Select onValueChange={setCurrency} value={currency}>
+                          <SelectTrigger className="w-[90px] rounded-r-none">
+                            <span>{currencySymbols[currency]}</span>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(currencySymbols).map(([code, symbol]) => (
+                              <SelectItem key={code} value={code}>
+                                {code} - {symbol}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Input
+                          type="number"
+                          placeholder="Amount"
+                          className="rounded-l-none"
+                          value={billAmount ?? ""}
+                          onChange={(e) => setBillAmount(parseFloat(e.target.value) || null)}
+                        />
+                      </div>
+                      {billAmountError && (
+                        <Alert variant="destructive" className="mt-2">
+                          <AlertTriangle className="h-4 w-4" />
+                          <AlertDescription>{billAmountError}</AlertDescription>
+                        </Alert>
+                      )}
+                    </section>
+
+                    {/* Participants Section */}
+                    <section className="space-y-2">
+                      <Label className="text-foreground/80 font-medium">
+                        Participants
+                      </Label>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Add participant"
+                          value={participantName}
+                          onChange={(e) => setParticipantName(e.target.value)}
+                        />
+                        <Button onClick={handleAddParticipant}>
+                          <User className="mr-2 h-4 w-4" />
+                          Add
+                        </Button>
+                      </div>
+                      {participantNameError && (
+                        <Alert variant="destructive" className="mt-2">
+                          <AlertTriangle className="h-4 w-4" />
+                          <AlertDescription>{participantNameError}</AlertDescription>
+                        </Alert>
+                      )}
+                    </section>
+
+                    {/* Payer Section */}
+                    <section className="space-y-2">
+                      <Label className="text-foreground/80 font-medium">
+                        Who Paid?
+                      </Label>
+                      <Select onValueChange={setPayer} value={payer}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select payer" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {participants.map((participant) => (
+                            <SelectItem key={participant} value={participant}>
+                              {participant}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {payerError && (
+                        <Alert variant="destructive" className="mt-2">
+                          <AlertTriangle className="h-4 w-4" />
+                          <AlertDescription>{payerError}</AlertDescription>
+                        </Alert>
+                      )}
+                    </section>
+                  </div>
+
+                  {/* Calculate Button */}
+                  <Button
+                    className="w-full py-6 text-lg"
+                    onClick={handleCalculateSplit}
+                    disabled={isCalculating || isCalculateDisabled}
+                  >
+                    {isCalculating ? (
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    ) : (
+                      <Wallet className="mr-2 h-5 w-5" />
+                    )}
+                    Calculate Split
+                  </Button>
+
+                  {/* Expenses List */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-foreground">
+                      Recent Expenses
+                    </h3>
+                    {expenses.slice().reverse().map((expense, index) => {
+                      const currencySymbol = currencySymbols[expense.currency] || "$";
+                      return (
+
+                        <Card key={index} className="hover:shadow-md transition-shadow">
+                          <CardHeader className="flex flex-row justify-between items-center p-4">
+                            <div>
+                              <CardTitle className="text-lg">{expense.type}</CardTitle>
+                              <CardDescription>
+                                Paid by {expense.payer} • {new Date(expense.date).toLocaleDateString()}
+                              </CardDescription>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteExpense(index)}
+                              className="text-red-500 hover:bg-red-500/10"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </CardHeader>
+                          <CardContent className="p-4 pt-0">
+                            <div className="space-y-3">
+                              <div className="flex justify-between">
+                                <span className="text-foreground/70">Total:</span>
+                                <span className="font-bold">
+                                  {currencySymbol}{expense.amount.toFixed(2)}
+                                </span>
+                              </div>
+
+                              <div className="border-t pt-3">
+                                <h4 className="text-sm font-medium mb-2">Owed amounts:</h4>
+                                <ul className="space-y-2">
+                                  {Object.entries(expense.owedAmounts).map(([name, amount]) => (
+                                    <li key={name} className="flex justify-between text-sm">
+                                      <span className="flex items-center gap-1">
+                                        {expense.payer === name ? (
+                                          <CheckCircle className="h-3 w-3 text-green-500" />
+                                        ) : (
+                                          <User className="h-3 w-3" />
+                                        )}
+                                        {name}
+                                      </span>
+                                      <span>
+                                        {currencySymbol}{amount.toFixed(2)}
+                                      </span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </TabsContent>
+
+                {/* Owed Breakdown Tab */}
+                <TabsContent value="owedBreakdown" className="space-y-6 mt-6">
+                  <div className="space-y-6">
+                    {/* Simplified Transactions */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-xl">
+                          Simplified Transactions
+                        </CardTitle>
+                        <CardDescription>
+                          Who needs to pay whom
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-3">
+                          {calculateSimplifiedOwedAmounts().map((transaction, i) => (
+                            <li key={i} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                              <span>
+                                <span className="font-medium">{transaction.to}</span> owes{' '}
+                                <span className="font-medium">{transaction.from}</span>
+                              </span>
+                              <span className="font-bold">
+                                {currencySymbols[transaction.currency] || "$"}{transaction.amount.toFixed(2)}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+
+                    {/* Total Balances */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-xl">
+                          Total Balances
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-3">
+                          {Object.entries(totalOwedAmounts()).map(([name, amount]) => {
+                            const currency = expenses.find(e => name in e.owedAmounts)?.currency || "USD";
+                            return (
+                              <li
+                                key={name}
+                                className={`flex justify-between items-center p-3 rounded-lg ${amount < 0 ? 'bg-red-500/10' : 'bg-green-500/10'
+                                  }`}
+                              >
+                                <span className="flex items-center gap-2">
+                                  <User className="h-4 w-4" />
+                                  <span className="font-medium">{name}</span>
+                                </span>
+                                <span className={`font-bold ${amount < 0 ? 'text-red-500' : 'text-green-500'
+                                  }`}>
+                                  {amount < 0 ? '-' : '+'}
+                                  {currencySymbols[currency] || "$"}{Math.abs(amount).toFixed(2)}
+                                </span>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+
+          <footer className="mt-8 text-center text-foreground/60">
+            <p className="text-sm">
+              Made with ❤️ by you | {new Date().getFullYear()}
+            </p>
+          </footer>
+        </div>
+      </div>
     </div>
   );
+
+
 }
 
