@@ -36,27 +36,34 @@ import { storage } from '../utils/storage'; // adjust the path as needed
 
 
 // Component for displaying a participant item in the list
-const ParticipantItem = ({ index, participant, isPayer, participantsLength }: any) => (
+const ParticipantItem = ({ index, participant, isPayer, participantsLength, onDelete }: any) => (
   <li
     key={index}
-    className={`flex items-center space-x-2 py-1 px-1 ${isPayer ? "bg-green-500/10 border border-green-500" : "bg-red-500/10"
-      } ${index === 0 ? "rounded-t-md" : ""
-      } ${index === participantsLength - 1 ? "rounded-b-md" : ""
-      }`}
+    className={`flex justify-between items-center py-1 px-1 ${isPayer ? "bg-green-500/10 border border-green-500" : "bg-red-500/10"} 
+    ${index === 0 ? "rounded-t-md" : ""} 
+    ${index === participantsLength - 1 ? "rounded-b-md" : ""}`}
   >
-    {isPayer ? (
-      <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
-    ) : (
-      <User className="mr-1 h-4 w-4 text-foreground" />
-    )}
-    <span
-      className={`${isPayer ? "text-green-500" : "text-red-500"
-        }`}
+    <div className="flex items-center space-x-2">
+      {isPayer ? (
+        <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
+      ) : (
+        <User className="mr-1 h-4 w-4 text-foreground" />
+      )}
+      <span className={`${isPayer ? "text-green-500" : "text-red-500"}`}>
+        {participant}
+      </span>
+    </div>
+
+    {!isPayer && <Button
+      variant="ghost"
+      size="sm"
+      onClick={() => onDelete(participant)}
+      className="text-red-500 hover:bg-red-500/10"
     >
-      {/* {index + 1}. {participant} */}
-      {participant}
-    </span>
+      <Trash2 className="h-4 w-4" />
+    </Button> }
   </li>
+
 
 );
 
@@ -173,6 +180,12 @@ export default function Home() {
 
     setParticipants([...participants, participantName.trim()]);
     setParticipantName("");
+  };
+
+  const handleDeleteParticipant = (participantToDelete: string) => {
+    setParticipants(prevParticipants =>
+      prevParticipants.filter(participant => participant !== participantToDelete)
+    );
   };
 
   // Handler for calculating the split amount
@@ -519,6 +532,7 @@ export default function Home() {
                             participant={participant}
                             isPayer={payer === participant}
                             participantsLength={participants.length}
+                            onDelete={handleDeleteParticipant}
                           />
                         ))}
                       </ul>
